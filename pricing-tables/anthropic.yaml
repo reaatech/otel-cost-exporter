@@ -1,0 +1,63 @@
+# Anthropic pricing table
+# Source: https://www.anthropic.com/pricing
+# All prices in USD per 1,000,000 tokens
+# Cache read/write prices apply to Claude models with prompt caching
+# Last updated: 2026-04 (best-effort; verify against official source)
+
+version: "2026.04"
+last_updated: "2026-04-27T00:00:00Z"
+pricing_unit: 1000000
+
+providers:
+  anthropic:
+    display_name: "Anthropic"
+    website: "https://www.anthropic.com/pricing"
+    models:
+      claude-3-opus-20240229:
+        input_token_price: 15.0
+        output_token_price: 75.0
+        cache_read_price: 1.5
+        cache_creation_price: 18.75
+        effective_date: "2024-03-04T00:00:00Z"
+
+      claude-3-sonnet-20240229:
+        input_token_price: 3.0
+        output_token_price: 15.0
+        cache_read_price: 0.3
+        cache_creation_price: 3.75
+        effective_date: "2024-03-04T00:00:00Z"
+
+      claude-3-haiku-20240307:
+        input_token_price: 0.25
+        output_token_price: 1.25
+        cache_read_price: 0.025
+        cache_creation_price: 0.3125
+        effective_date: "2024-03-13T00:00:00Z"
+
+      claude-3-5-sonnet-20240620:
+        input_token_price: 3.0
+        output_token_price: 15.0
+        cache_read_price: 0.3
+        cache_creation_price: 3.75
+        effective_date: "2024-06-20T00:00:00Z"
+
+      claude-3-5-sonnet-20241022:
+        input_token_price: 3.0
+        output_token_price: 15.0
+        cache_read_price: 0.3
+        cache_creation_price: 3.75
+        effective_date: "2024-10-22T00:00:00Z"
+
+      claude-3-5-haiku-20241022:
+        input_token_price: 0.8
+        output_token_price: 4.0
+        cache_read_price: 0.08
+        cache_creation_price: 1.0
+        effective_date: "2024-10-22T00:00:00Z"
+
+      claude-3-7-sonnet-20250219:
+        input_token_price: 3.0
+        output_token_price: 15.0
+        cache_read_price: 0.3
+        cache_creation_price: 3.75
+        effective_date: "2025-02-19T00:00:00Z"

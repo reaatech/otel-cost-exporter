@@ -1,0 +1,48 @@
+# Google (Vertex AI / Gemini) pricing table
+# Source: https://cloud.google.com/vertex-ai/pricing
+# All prices in USD per 1,000,000 tokens
+# Last updated: 2026-04 (best-effort; verify against official source)
+
+version: "2026.04"
+last_updated: "2026-04-27T00:00:00Z"
+pricing_unit: 1000000
+
+providers:
+  google:
+    display_name: "Google (Vertex AI / Gemini)"
+    website: "https://cloud.google.com/vertex-ai/pricing"
+    models:
+      gemini-pro:
+        input_token_price: 0.5
+        output_token_price: 1.5
+        effective_date: "2024-01-01T00:00:00Z"
+
+      gemini-1.0-pro:
+        input_token_price: 0.5
+        output_token_price: 1.5
+        effective_date: "2024-01-01T00:00:00Z"
+
+      gemini-1.5-pro:
+        input_token_price: 3.5
+        output_token_price: 10.5
+        effective_date: "2024-04-09T00:00:00Z"
+
+      gemini-1.5-flash:
+        input_token_price: 0.075
+        output_token_price: 0.3
+        effective_date: "2024-05-14T00:00:00Z"
+
+      gemini-2.0-flash:
+        input_token_price: 0.1
+        output_token_price: 0.4
+        effective_date: "2024-12-11T00:00:00Z"
+
+      gemini-2.5-pro:
+        input_token_price: 1.25
+        output_token_price: 10.0
+        effective_date: "2025-03-25T00:00:00Z"
+
+      text-embedding-004:
+        input_token_price: 0.025
+        output_token_price: 0.025
+        effective_date: "2024-01-01T00:00:00Z"

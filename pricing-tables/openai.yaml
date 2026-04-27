@@ -1,0 +1,98 @@
+# OpenAI pricing table
+# Source: https://openai.com/api/pricing/
+# All prices in USD per 1,000,000 tokens
+# Last updated: 2026-04 (best-effort; verify against official source)
+
+version: "2026.04"
+last_updated: "2026-04-27T00:00:00Z"
+pricing_unit: 1000000
+
+providers:
+  openai:
+    display_name: "OpenAI"
+    website: "https://openai.com/api/pricing/"
+    models:
+      gpt-4:
+        input_token_price: 30.0
+        output_token_price: 60.0
+        effective_date: "2024-01-01T00:00:00Z"
+
+      gpt-4-turbo:
+        input_token_price: 10.0
+        output_token_price: 30.0
+        effective_date: "2024-01-01T00:00:00Z"
+
+      gpt-4-turbo-preview:
+        input_token_price: 10.0
+        output_token_price: 30.0
+        effective_date: "2024-01-01T00:00:00Z"
+
+      gpt-4-0125-preview:
+        input_token_price: 10.0
+        output_token_price: 30.0
+        effective_date: "2024-01-01T00:00:00Z"
+
+      gpt-4-1106-preview:
+        input_token_price: 10.0
+        output_token_price: 30.0
+        effective_date: "2024-01-01T00:00:00Z"
+
+      gpt-4-vision-preview:
+        input_token_price: 10.0
+        output_token_price: 30.0
+        effective_date: "2024-01-01T00:00:00Z"
+
+      gpt-4o:
+        input_token_price: 2.5
+        output_token_price: 10.0
+        effective_date: "2024-08-06T00:00:00Z"
+
+      gpt-4o-mini:
+        input_token_price: 0.15
+        output_token_price: 0.6
+        effective_date: "2024-07-18T00:00:00Z"
+
+      o1:
+        input_token_price: 15.0
+        output_token_price: 60.0
+        effective_date: "2024-09-12T00:00:00Z"
+
+      o1-mini:
+        input_token_price: 1.1
+        output_token_price: 4.4
+        effective_date: "2024-09-12T00:00:00Z"
+
+      o3-mini:
+        input_token_price: 1.1
+        output_token_price: 4.4
+        effective_date: "2025-01-31T00:00:00Z"
+
+      gpt-3.5-turbo:
+        input_token_price: 0.5
+        output_token_price: 1.5
+        effective_date: "2024-01-01T00:00:00Z"
+
+      gpt-3.5-turbo-0125:
+        input_token_price: 0.5
+        output_token_price: 1.5
+        effective_date: "2024-01-25T00:00:00Z"
+
+      gpt-3.5-turbo-1106:
+        input_token_price: 1.0
+        output_token_price: 2.0
+        effective_date: "2023-11-06T00:00:00Z"
+
+      gpt-3.5-turbo-instruct:
+        input_token_price: 1.5
+        output_token_price: 2.0
+        effective_date: "2024-01-01T00:00:00Z"
+
+      text-embedding-3-small:
+        input_token_price: 0.02
+        output_token_price: 0.02
+        effective_date: "2024-01-25T00:00:00Z"
+
+      text-embedding-3-large:
+        input_token_price: 0.13
+        output_token_price: 0.13
+        effective_date: "2024-01-25T00:00:00Z"

@@ -1,0 +1,88 @@
+# AWS Bedrock pricing table
+# Source: https://aws.amazon.com/bedrock/pricing/
+# All prices in USD per 1,000,000 tokens
+# Pricing varies by region; us-east-1 prices shown
+# Last updated: 2026-04 (best-effort; verify against official source)
+
+version: "2026.04"
+last_updated: "2026-04-27T00:00:00Z"
+pricing_unit: 1000000
+
+providers:
+  aws-bedrock:
+    display_name: "AWS Bedrock"
+    website: "https://aws.amazon.com/bedrock/pricing/"
+    models:
+      # Anthropic models on Bedrock
+      claude-3-opus:
+        input_token_price: 15.0
+        output_token_price: 75.0
+        effective_date: "2024-04-01T00:00:00Z"
+
+      claude-3-sonnet:
+        input_token_price: 3.0
+        output_token_price: 15.0
+        effective_date: "2024-04-01T00:00:00Z"
+
+      claude-3-haiku:
+        input_token_price: 0.25
+        output_token_price: 1.25
+        effective_date: "2024-04-01T00:00:00Z"
+
+      claude-3.5-sonnet:
+        input_token_price: 3.0
+        output_token_price: 15.0
+        effective_date: "2024-10-22T00:00:00Z"
+
+      claude-3.7-sonnet:
+        input_token_price: 3.0
+        output_token_price: 15.0
+        effective_date: "2025-02-19T00:00:00Z"
+
+      # Meta Llama models on Bedrock
+      llama-3-70b:
+        input_token_price: 2.65
+        output_token_price: 3.5
+        effective_date: "2024-04-01T00:00:00Z"
+
+      llama-3-8b:
+        input_token_price: 0.3
+        output_token_price: 0.6
+        effective_date: "2024-04-01T00:00:00Z"
+
+      llama-3.1-70b:
+        input_token_price: 2.65
+        output_token_price: 3.5
+        effective_date: "2024-07-23T00:00:00Z"
+
+      llama-3.1-8b:
+        input_token_price: 0.3
+        output_token_price: 0.6
+        effective_date: "2024-07-23T00:00:00Z"
+
+      # Amazon Nova models
+      amazon-nova-pro:
+        input_token_price: 0.8
+        output_token_price: 3.2
+        effective_date: "2024-12-03T00:00:00Z"
+
+      amazon-nova-lite:
+        input_token_price: 0.06
+        output_token_price: 0.24
+        effective_date: "2024-12-03T00:00:00Z"
+
+      amazon-nova-micro:
+        input_token_price: 0.035
+        output_token_price: 0.14
+        effective_date: "2024-12-03T00:00:00Z"
+
+      # Amazon Titan models
+      titan-text-express:
+        input_token_price: 0.8
+        output_token_price: 1.6
+        effective_date: "2024-04-01T00:00:00Z"
+
+      titan-text-lite:
+        input_token_price: 0.3
+        output_token_price: 0.4
+        effective_date: "2024-04-01T00:00:00Z"
