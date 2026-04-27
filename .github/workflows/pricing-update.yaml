@@ -1,0 +1,57 @@
+name: Pricing Update (stub — pending Phase 3)
+
+on:
+  schedule:
+    - cron: "0 0 * * 1" # Every Monday at 00:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check-pricing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Fetch latest pricing (stub — no-op until Phase 3)
+        run: pnpm generate-pricing
+        env:
+          PRICING_SOURCE_URL: ${{ vars.PRICING_SOURCE_URL }}
+
+      - name: Validate pricing tables
+        run: pnpm validate-pricing
+
+      - name: Check for changes
+        id: diff
+        run: |
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create Pull Request
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore(pricing): automated pricing table update"
+          branch: pricing-update
+          title: "chore(pricing): automated pricing table update"
+          body: |
+            Automated pricing table update via scheduled workflow.
+
+            Please review changes before merging.
+          labels: pricing, automated
