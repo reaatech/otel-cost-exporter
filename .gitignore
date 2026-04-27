@@ -1,0 +1,14 @@
+node_modules
+dist
+.env
+.env.local
+coverage
+*.log
+.DS_Store
+*.tgz
+.nyc_output
+*.swp
+*.swo
+.idea/
+.claude
+DEV_PLAN.md
