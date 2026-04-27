@@ -1,4 +1,4 @@
-FROM node:22-alpine AS builder
+FROM node:25-alpine AS builder
 
 WORKDIR /app
 
@@ -16,7 +16,7 @@ RUN pnpm build
 
 RUN pnpm prune --prod
 
-FROM node:22-alpine
+FROM node:25-alpine
 
 RUN apk add --no-cache dumb-init
 
