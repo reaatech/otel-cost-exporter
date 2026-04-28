@@ -37,8 +37,6 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm test:coverage
-      - name: Check coverage thresholds
-        run: pnpm vitest run --coverage --coverage.thresholds.autoUpdate=false 2>&1 | grep -E '(ERROR|coverage|threshold)'
 
   security:
     runs-on: ubuntu-latest
