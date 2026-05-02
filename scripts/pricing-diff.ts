@@ -12,6 +12,6 @@ import process from 'node:process';
 
 console.error(
   'pricing-diff: Not yet implemented (tracked as Phase 3 feature).\n' +
-  'Run `git diff pricing-tables/` to manually review pricing changes.',
+    'Run `git diff pricing-tables/` to manually review pricing changes.',
 );
 process.exit(1);

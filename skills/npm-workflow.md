@@ -11,7 +11,7 @@ This skill covers npm/pnpm package management workflows for the otel-cost-export
 
 ## Package Manager
 
-This project uses **pnpm** (v9+) as the package manager. The `packageManager` field in `package.json` enforces this.
+This project uses **pnpm** (v10+) as the package manager. The `packageManager` field in `package.json` enforces this.
 
 ### Why pnpm
 
@@ -27,7 +27,7 @@ This project uses **pnpm** (v9+) as the package manager. The `packageManager` fi
 ```bash
 # First-time setup
 corepack enable
-corepack prepare pnpm@9 --activate
+corepack prepare pnpm@10 --activate
 
 # Install from lockfile (CI-safe)
 pnpm install --frozen-lockfile
@@ -87,7 +87,7 @@ pnpm audit
 pnpm audit --audit-level=high
 
 # Check before commit
-make security-scan  # runs: pnpm audit --audit-level=high
+pnpm audit --audit-level=high
 ```
 
 ### Handling Audit Findings
@@ -99,56 +99,22 @@ make security-scan  # runs: pnpm audit --audit-level=high
 
 ## Publishing Workflow
 
-### npm Registry
+This project uses **changesets** for versioning and publishing.
 
-```bash
-# Dry-run publish (check what would be published)
-pnpm publish --dry-run
-
-# Publish to npm (CI-only; use secrets.NPM_TOKEN)
-pnpm publish --access public --no-git-checks
 ```
-
-### GitHub Packages (ghcr.io)
-
-The Docker image is published alongside the npm package via `release.yaml`.
+1. pnpm changeset          # interactive: pick packages, bump type, summary
+2. Commit and push         # CI opens/updates "Version Packages" PR
+3. Review version bumps and CHANGELOGs
+4. Merge Version Packages PR  → CI publishes to npm + mirrors to GitHub Packages
+```
 
 ### Pre-publish Checklist
 
-- [ ] All tests passing (`make test`)
-- [ ] Coverage >= 85% (`make test-coverage`)
-- [ ] TypeScript compiles clean (`make typecheck`)
-- [ ] Linting passes (`make lint`)
-- [ ] CHANGELOG.md updated
-- [ ] Version bumped in package.json
-- [ ] Tag pushed (`git tag v<version>`)
-
-### Version Bumping
-
-```bash
-# Patch (0.1.0 → 0.1.1)
-pnpm bump-patch  # runs: npm version patch --no-git-tag-version
-pnpm version patch
-
-# Minor (0.1.0 → 0.2.0)
-pnpm version minor
-
-# Major (0.1.0 → 1.0.0)
-pnpm version major
-```
-
-### Creating a Release Tag
-
-```bash
-# Read current version
-VERSION=$(node -p "require('./package.json').version")
-
-# Create annotated tag
-git tag -a "v$VERSION" -m "Release v$VERSION"
-
-# Push tag (triggers release workflow)
-git push origin "v$VERSION"
-```
+- [ ] All tests passing (`pnpm test`)
+- [ ] Coverage >= 85% (`pnpm test:coverage`)
+- [ ] TypeScript compiles clean (`pnpm typecheck`)
+- [ ] Linting passes (`pnpm lint`)
+- [ ] CHANGELOG.md updated (changesets handles this automatically)
 
 ## Lockfile Conflicts
 
@@ -174,3 +140,36 @@ git add pnpm-lock.yaml
 5. **Review dep size impact** — Use [bundlephobia](https://bundlephobia.com) for new deps
 6. **Prefer ESM** — All packages should support ESM imports
 7. **No transitive dep overrides** — Keep `overrides` minimal, document any
+
+## Monorepo-Specific Notes
+
+### Workspace Protocol
+
+Internal package dependencies use the `workspace:*` protocol:
+
+```json
+{
+  "dependencies": {
+    "@reaatech/otel-cost-exporter-core": "workspace:*"
+  }
+}
+```
+
+This ensures intra-repo packages always resolve to the local version. pnpm replaces `workspace:*` with the actual version at publish time.
+
+### Root-Level Operations
+
+```bash
+# Install all workspace dependencies (run from repo root)
+pnpm install -w
+
+# Add a dependency to the root workspace
+pnpm add -w <package>
+
+# Run a command across all workspace packages
+pnpm -r run test
+pnpm -r run build
+
+# Run a command for a specific package
+pnpm --filter @reaatech/otel-cost-exporter-core run test
+```

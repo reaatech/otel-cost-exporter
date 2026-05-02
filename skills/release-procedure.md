@@ -4,163 +4,110 @@
   Implementation Status: PLANNING
   Target Phase: 4 (Production Readiness)
   Prerequisites: Phase 1-3 (Foundation, Core, Integration)
-  Note: All pnpm scripts and CI/CD workflows referenced here already exist
-        as scaffolding. Docker builds, Helm charts, and npm publish are Phase 4 deliverables.
+  Note: This monorepo uses Changesets for version management and publishing.
+        Docker builds, Kubernetes manifests, and npm publish are Phase 4 deliverables.
 -->
 
 ## Overview
 
-This skill provides comprehensive procedures for releasing and deploying the otel-cost-exporter system. It covers version management, build procedures, deployment steps, and post-release verification.
+This skill provides comprehensive procedures for releasing and deploying the otel-cost-exporter monorepo. Version management uses [Changesets](https://github.com/changesets/changesets) with automatic changelog generation and multi-package publishing to npm and GitHub Packages. CI/CD workflows handle the "Version Packages" PR and publishing on merge to main.
+
+## Monorepo Packages
+
+| Package | npm Name | Path |
+|---------|----------|------|
+| Core | `@reaatech/otel-cost-exporter-core` | `packages/core/` |
+| Pricing | `@reaatech/otel-cost-exporter-pricing` | `packages/pricing/` |
+| Calculator | `@reaatech/otel-cost-exporter-calculator` | `packages/calculator/` |
+| Exporter | `@reaatech/otel-cost-exporter` | `packages/exporter/` |
+| CLI | `@reaatech/otel-cost-exporter-cli` | `packages/cli/` |
 
 ## Release Types
 
-| Type | Version Bump | When to Use |
-|------|--------------|-------------|
-| Patch | x.y.z → x.y.z+1 | Bug fixes, pricing updates, documentation |
-| Minor | x.y.z → x.y+1.0 | New features, new models, backward compatible changes |
-| Major | x+1.0.0 | Breaking changes, major refactoring |
+| Type | Changeset | When to Use |
+|------|-----------|-------------|
+| Patch | `pnpm changeset` → select patch | Bug fixes, pricing updates, documentation |
+| Minor | `pnpm changeset` → select minor | New features, new models, backward compatible changes |
+| Major | `pnpm changeset` → select major | Breaking changes, major refactoring |
 
 ## Pre-Release Checklist
 
-Before creating a release, ensure:
+Before recording a changeset, ensure:
 
-- [ ] All tests passing
-- [ ] Code coverage >= 85%
-- [ ] No linting errors
-- [ ] Documentation updated
-- [ ] CHANGELOG.md updated
-- [ ] Version numbers updated
-- [ ] Security scan passed
-- [ ] Performance benchmarks run
-- [ ] Integration tests passed
+- [ ] All tests passing: `pnpm test`
+- [ ] Code coverage >= 85%: `pnpm test:coverage`
+- [ ] No linting errors: `pnpm lint`
+- [ ] TypeScript compiles: `pnpm typecheck`
+- [ ] Documentation updated (CHANGELOG handled automatically by Changesets)
+- [ ] Security scan passed: `pnpm audit --audit-level=high`
 
-## Release Procedure
+## Release Procedure (Changesets)
 
-### Step 1: Prepare Release
+### Step 1: Record Changes
 
-1. **Create release branch**
-   ```bash
-   # Create release branch
-   git checkout -b release/v1.2.0 main
-
-   # Or for patch release
-   git checkout -b release/v1.1.1 v1.1.0
-   ```
-
-2. **Update version numbers**
-   ```bash
-   # Update version in package.json
-   pnpm version patch   # or pnpm version minor, or pnpm version major
-
-   # Update version constant in source
-   # Edit src/semconv/version.ts
-   export const VERSION = "1.2.0";
-
-   # Update version in Helm chart (Phase 4+)
-   # Edit deployments/helm/chart/Chart.yaml
-   version: 1.2.0
-   appVersion: 1.2.0
-   ```
-
-3. **Update CHANGELOG.md**
-   ```markdown
-   ## [1.2.0] - 2024-01-15
-
-   ### Added
-   - Support for Claude 3 models
-   - New pricing table for Google Gemini
-   - OTLP metrics export support
-
-   ### Changed
-   - Improved caching performance
-   - Updated OpenAI pricing
-
-   ### Fixed
-   - Fixed model normalization for fine-tuned models
-   - Fixed memory leak in export buffer
-
-   ### Security
-   - Updated dependencies with security vulnerabilities
-   ```
-
-4. **Commit changes**
-   ```bash
-   git add src/semconv/version.ts package.json CHANGELOG.md
-   git add deployments/helm/chart/Chart.yaml  # Phase 4+
-
-   git commit -m "chore: prepare release v1.2.0"
-   ```
-
-### Step 2: Run Pre-Release Tests
+After making changes to one or more packages, record a changeset:
 
 ```bash
-# Run full test suite
-pnpm test
-
-# Run performance benchmarks
-pnpm vitest bench
-
-# Run security audit
-pnpm audit --audit-level=high
-
-# Build the project
-pnpm build
-
-# Test Docker build (Phase 4+)
-docker build -t ghcr.io/reaatech/otel-cost-exporter:v1.2.0 .
-
-# Validate Helm chart (Phase 4+)
-helm lint deployments/helm/chart/
+# Create a changeset interactively
+pnpm changeset
 ```
 
-### Step 3: Create Release
+- Select the packages that changed (use arrow keys + space to select)
+- Choose the version bump: patch, minor, or major
+- Write a summary of the changes (appears in each package's CHANGELOG.md)
 
-1. **Tag the release**
-   ```bash
-   # Create annotated tag
-   git tag -a v1.2.0 -m "Release v1.2.0"
+This creates a Markdown file in `.changeset/` with a unique name like `chilly-cats-yawn.md`.
 
-   # Sign tag (recommended)
-   git tag -s v1.2.0 -m "Release v1.2.0"
+```markdown
+---
+'@reaatech/otel-cost-exporter-pricing': patch
+'@reaatech/otel-cost-exporter-exporter': patch
+---
 
-   # Push tag
-   git push origin v1.2.0
-   ```
+Updated OpenAI GPT-4o pricing to reflect latest rate changes.
+```
 
-2. **Push release branch**
-   ```bash
-   git push origin release/v1.2.0
+Commit the changeset alongside your code changes:
 
-   # Create PR to main
-   gh pr create --base main --head release/v1.2.0 \
-     --title "Release v1.2.0" \
-     --body "This PR releases version 1.2.0"
-   ```
+```bash
+git add .changeset/ packages/
+git commit -m "pricing: update OpenAI GPT-4o rates"
+```
 
-3. **Merge and tag**
-   ```bash
-   # After PR approval
-   gh pr merge --squash --delete-branch
+### Step 2: Push and Open PR
 
-   # Tag from main
-   git checkout main
-   git pull origin main
-   git tag -a v1.2.0 -m "Release v1.2.0"
-   git push origin v1.2.0
-   ```
+Push your branch to GitHub and open a pull request against `main`. The changeset file travels with the code. CI runs tests, linting, and typechecking automatically.
 
-### Step 4: Automated Release (GitHub Actions)
+### Step 3: CI Opens "Version Packages" PR
 
-The push of a version tag triggers the release workflow:
+When your PR is merged to `main`, the Changesets GitHub Action (`.github/workflows/release.yaml`) runs:
+
+1. Detects any `.changeset/*.md` files on `main`
+2. Opens (or updates) a **"Version Packages" PR** that:
+   - Consumes all changesets
+   - Bumps package versions according to each changeset
+   - Updates `CHANGELOG.md` files in each changed package
+   - Updates inter-package `workspace:*` dependency ranges
+
+### Step 4: Review and Merge "Version Packages" PR
+
+Review the auto-generated "Version Packages" PR:
+- Verify version bumps are correct
+- Review generated changelog entries
+- Once approved, merge the PR
+
+### Step 5: Auto-Publish to npm + GitHub Packages
+
+Merging the "Version Packages" PR triggers the publish workflow:
 
 ```yaml
-# .github/workflows/release.yaml
+# .github/workflows/release.yaml (publish step)
 name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
 
 jobs:
   release:
@@ -183,83 +130,45 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build all packages
+        run: pnpm build
+
       - name: Run tests
         run: pnpm test
 
-      - name: Run type-check
-        run: pnpm typecheck
-
-      - name: Build
-        run: pnpm build
-
       - name: Publish to npm
-        run: pnpm publish --access public
+        run: pnpm release
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Build Docker image
-        run: docker build -t ghcr.io/reaatech/otel-cost-exporter:${{ github.ref_name }} .
+        run: docker build -f docker/Dockerfile -t ghcr.io/reaatech/otel-cost-exporter:latest .
 
       - name: Push Docker image
-        run: docker push ghcr.io/reaatech/otel-cost-exporter:${{ github.ref_name }}
-
-      - name: Create GitHub Release
-        run: gh release create ${{ github.ref_name }} \
-          --notes-file CHANGELOG.md \
-          --title "Release ${{ github.ref_name }}" \
-          dist/*
-
-      - name: Publish Helm chart (Phase 4+)
-        run: helm package deployments/helm/chart/ && helm push *.tgz oci://ghcr.io/reaatech/helm-charts
+        run: docker push ghcr.io/reaatech/otel-cost-exporter:latest
 ```
 
-### Step 5: Verify Release
+### Step 6: Verify Release
 
-1. **Check npm package**
-   ```bash
-   # View package on npm
-   npm view otel-cost-exporter versions
+```bash
+# Check all published packages
+npm view @reaatech/otel-cost-exporter versions
+npm view @reaatech/otel-cost-exporter-core versions
+npm view @reaatech/otel-cost-exporter-pricing versions
+npm view @reaatech/otel-cost-exporter-calculator versions
+npm view @reaatech/otel-cost-exporter-cli versions
 
-   # Install specific version
-   pnpm add otel-cost-exporter@1.2.0
-   ```
+# Install specific packages
+pnpm add @reaatech/otel-cost-exporter@latest
 
-2. **Check GitHub Release**
-   ```bash
-   # View release
-   gh release view v1.2.0
-
-   # Download release assets
-   gh release download v1.2.0
-   ```
-
-3. **Verify Docker image**
-   ```bash
-   # Pull image
-   docker pull ghcr.io/reaatech/otel-cost-exporter:v1.2.0
-
-   # Run container
-   docker run --rm ghcr.io/reaatech/otel-cost-exporter:v1.2.0 --version
-
-   # Expected output: otel-cost-exporter version 1.2.0
-   ```
-
-4. **Verify Helm chart (Phase 4+)**
-   ```bash
-   # Add Helm repository
-   helm repo add otel-cost-exporter https://reaatech.github.io/helm-charts
-
-   # Search for chart
-   helm search repo otel-cost-exporter
-
-   # Expected output should show v1.2.0
-   ```
+# Verify Docker image
+docker pull ghcr.io/reaatech/otel-cost-exporter:latest
+docker run --rm ghcr.io/reaatech/otel-cost-exporter:latest --version
+```
 
 ## Deployment Procedures
 
 ### Kubernetes Deployment
-
-#### Standard Deployment
 
 ```yaml
 # deployments/kubernetes/deployment.yaml
@@ -278,12 +187,12 @@ spec:
     metadata:
       labels:
         app: otel-cost-exporter
-        version: v1.2.0
     spec:
       containers:
       - name: otel-cost-exporter
-        image: ghcr.io/reaatech/otel-cost-exporter:v1.2.0
+        image: ghcr.io/reaatech/otel-cost-exporter:latest
         args:
+          - "serve"
           - "--config=/etc/otel-cost-exporter/config.yaml"
         ports:
         - containerPort: 8888
@@ -311,54 +220,32 @@ spec:
           periodSeconds: 5
 ```
 
-#### Deploy with kubectl
-
 ```bash
-# Apply deployment
+# Deploy
 kubectl apply -f deployments/kubernetes/
 
-# Check deployment status
+# Check status
 kubectl rollout status deployment/otel-cost-exporter
 
-# Verify pods are running
+# Verify pods
 kubectl get pods -l app=otel-cost-exporter
 
 # Check logs
 kubectl logs -l app=otel-cost-exporter --tail=50
 ```
 
-#### Deploy with Helm
-
-```bash
-# Add repository
-helm repo add otel-cost-exporter https://reaatech.github.io/helm-charts
-helm repo update
-
-# Install chart
-helm install otel-cost-exporter otel-cost-exporter/otel-cost-exporter \
-  --namespace monitoring \
-  --create-namespace \
-  --set image.tag=v1.2.0 \
-  -f values.yaml
-
-# Upgrade existing installation
-helm upgrade otel-cost-exporter otel-cost-exporter/otel-cost-exporter \
-  --namespace monitoring \
-  --set image.tag=v1.2.0
-
-# Check release status
-helm status otel-cost-exporter -n monitoring
-```
-
 ### Docker Deployment
 
 ```bash
+# Build multi-arch image
+docker build -f docker/Dockerfile -t otel-cost-exporter:latest .
+
 # Run with Docker
 docker run -d \
   --name otel-cost-exporter \
   -p 8888:8888 \
   -v /path/to/config.yaml:/etc/otel-cost-exporter/config.yaml \
-  ghcr.io/reaatech/otel-cost-exporter:v1.2.0
+  ghcr.io/reaatech/otel-cost-exporter:latest
 
 # Run with Docker Compose
 docker-compose up -d otel-cost-exporter
@@ -403,11 +290,6 @@ service:
       exporters: [prometheus]
 ```
 
-```bash
-# Run Collector with cost exporter
-otelcol --config=otel-collector-config.yaml
-```
-
 ## Post-Release Verification
 
 ### Health Checks
@@ -429,19 +311,6 @@ curl http://localhost:8888/metrics
 ### Functional Verification
 
 ```bash
-# Test pricing lookup
-curl -X POST http://localhost:8888/debug/pricing \
-  -d '{"model": "gpt-4", "input_tokens": 1000, "output_tokens": 500}'
-
-# Expected response:
-# {
-#   "model": "gpt-4",
-#   "provider": "openai",
-#   "input_cost": 0.03,
-#   "output_cost": 0.03,
-#   "total_cost": 0.06
-# }
-
 # Check supported models
 curl http://localhost:8888/debug/models
 # Expected: List of supported models
@@ -456,15 +325,30 @@ curl http://localhost:8888/metrics | grep otel_cost_exporter
 # Expected metrics:
 # otel_cost_exporter_health{status="healthy"} 1
 # otel_cost_exporter_spans_processed_total 0
-# otel_cost_exporter_pricing_table_version{provider="openai"} 20240115
 ```
 
 ## Rollback Procedure
 
-### Quick Rollback
+### npm Package Rollback
+
+If a published package version has a critical bug:
 
 ```bash
-# Kubernetes rollback
+# Deprecate the bad version
+npm deprecate @reaatech/otel-cost-exporter@1.2.0 "Critical bug - use 1.1.0"
+
+# Repoint latest tag to the previous stable version
+npm dist-tag add @reaatech/otel-cost-exporter@1.1.0 latest
+
+# Do this for each affected package
+npm deprecate @reaatech/otel-cost-exporter-core@1.2.0 "Critical bug - use 1.1.0"
+npm dist-tag add @reaatech/otel-cost-exporter-core@1.1.0 latest
+```
+
+### Kubernetes Rollback
+
+```bash
+# Rollback to previous deployment revision
 kubectl rollout undo deployment/otel-cost-exporter
 
 # Or rollback to specific revision
@@ -472,29 +356,6 @@ kubectl rollout undo deployment/otel-cost-exporter --to-revision=2
 
 # Verify rollback
 kubectl rollout status deployment/otel-cost-exporter
-```
-
-### Helm Rollback
-
-```bash
-# List release history
-helm history otel-cost-exporter -n monitoring
-
-# Rollback to previous version
-helm rollback otel-cost-exporter -n monitoring
-
-# Or rollback to specific revision
-helm rollback otel-cost-exporter 2 -n monitoring
-```
-
-### npm Rollback
-
-```bash
-# Revert to previous npm version
-npm deprecate otel-cost-exporter@1.2.0 "Rolling back to 1.1.0 due to critical bug"
-
-# Republish last stable version as latest
-npm dist-tag add otel-cost-exporter@1.1.0 latest
 ```
 
 ### Emergency Rollback
@@ -505,7 +366,7 @@ kubectl scale deployment otel-cost-exporter --replicas=0
 
 # Deploy previous stable version
 kubectl set image deployment/otel-cost-exporter \
-  otel-cost-exporter=ghcr.io/reaatech/otel-cost-exporter:v1.1.0
+  otel-cost-exporter=ghcr.io/reaatech/otel-cost-exporter:<previous-tag>
 
 # Scale back up
 kubectl scale deployment otel-cost-exporter --replicas=2
@@ -516,58 +377,60 @@ kubectl logs -f -l app=otel-cost-exporter
 
 ## Hotfix Procedure
 
-### Critical Hotfix
-
-1. **Create hotfix branch**
+1. **Create hotfix branch from main**
    ```bash
-   git checkout -b hotfix/critical-fix v1.2.0
+   git checkout main
+   git pull origin main
+   git checkout -b hotfix/critical-fix
    ```
 
-2. **Apply fix and test**
+2. **Apply fix and record a changeset**
    ```bash
-   # Make changes
+   # Make changes to package source
    # ...
+
+   # Record a patch changeset
+   pnpm changeset
+   # Select the affected package(s), choose "patch"
 
    # Run tests
    pnpm test
-   ```
+   pnpm typecheck
 
-3. **Create hotfix release**
-   ```bash
+   # Commit
+   git add .
    git commit -m "fix: critical bug fix"
-   git tag -a v1.2.1 -m "Hotfix v1.2.1"
-   git push origin v1.2.1
    ```
 
-4. **Deploy hotfix**
-   ```bash
-   kubectl set image deployment/otel-cost-exporter \
-     otel-cost-exporter=ghcr.io/reaatech/otel-cost-exporter:v1.2.1
-   ```
+3. **Open PR to main**
+
+   Push the branch and open a PR. After merge, the changeset workflow will create the "Version Packages" PR with the hotfix bump. Merge that PR to trigger the publish.
 
 ## Best Practices
 
-1. **Always tag releases** - Use annotated and signed tags
-2. **Update CHANGELOG** - Document all changes
-3. **Test thoroughly** - Run full test suite before release
-4. **Use CI/CD** - Automate build and release process
-5. **Monitor after release** - Watch for errors and performance issues
-6. **Have rollback plan** - Be prepared to rollback quickly
-7. **Communicate changes** - Notify users of important changes
-8. **Security first** - Scan for vulnerabilities before release
+1. **Always record changesets** — Every user-facing change should have one
+2. **Keep changesets small** — One changeset per logical change, not one giant changeset
+3. **Test thoroughly** — Run full test suite before opening PRs
+4. **Use CI/CD** — Let the automated workflow handle versioning and publishing
+5. **Monitor after release** — Watch for errors and performance issues
+6. **Have rollback plan** — Be prepared to rollback quickly via npm dist-tags
+7. **Communicate changes** — Changesets become changelog entries automatically
+8. **Security first** — Scan for vulnerabilities before release
 
 ## Release Schedule
 
 | Release Type | Frequency | Process |
 |--------------|-----------|---------|
-| Patch | As needed | Automated with manual approval |
-| Minor | Monthly | Full release process |
-| Major | Quarterly | Extended testing period |
+| Patch | As needed | Record changeset → merge → auto-publish |
+| Minor | Monthly | Full release process with changeset review |
+| Major | Quarterly | Extended testing period with changeset planning |
 
 ## Version Support Policy
 
-| Version | Support Status | End of Life |
-|---------|----------------|-------------|
-| v1.2.x | Current | - |
-| v1.1.x | Maintenance | 3 months after v1.2.0 |
-| v1.0.x | End of Life | 3 months after v1.1.0 |
+Each package in the monorepo is independently versioned. Breaking changes in one package do not force a major bump in others unless the public API is affected. Workspace dependencies are kept in sync via `workspace:*`.
+
+| Version Line | Support Status | End of Life |
+|-------------|----------------|-------------|
+| Latest | Current | - |
+| Previous minor | Maintenance | 3 months after next minor |
+| Older versions | End of Life | 3 months after subsequent release |

@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 // Pricing table validation script — Phase 1 implementation
-import { readdir, readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { parse } from 'yaml';
 
-const TABLES_DIR = join(import.meta.dirname, '..', 'pricing-tables');
+const TABLES_DIR = join(import.meta.dirname, '..', 'packages', 'pricing', 'pricing-tables');
 
 const files = await readdir(TABLES_DIR);
 let errors = 0;

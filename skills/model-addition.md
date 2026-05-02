@@ -58,15 +58,15 @@ Before adding a new model/provider, collect:
 1. **Locate or create provider pricing file**
    ```bash
    # Check if provider file exists
-   ls pricing-tables/
+   ls packages/pricing/pricing-tables/
 
    # If new provider, create new file
-   touch pricing-tables/new-provider.yaml
+   touch packages/pricing/pricing-tables/new-provider.yaml
    ```
 
 2. **Add model pricing**
    ```yaml
-   # pricing-tables/new-provider.yaml
+   # packages/pricing/pricing-tables/new-provider.yaml
    version: "2024.01"
    last_updated: "2024-01-15T00:00:00Z"
    pricing_unit: 1_000_000  # all prices per 1M tokens
@@ -94,7 +94,7 @@ Provider detection should rely on `gen_ai.system` as the primary signal. Model n
 
  1. **Edit normalizer configuration**
     ```typescript
-    // src/calculator/normalizer.ts
+    // packages/calculator/src/normalizer.ts
 
     /**
      * Maps gen_ai.system values to canonical provider keys.
@@ -126,7 +126,7 @@ Provider detection should rely on `gen_ai.system` as the primary signal. Model n
 
  2. **Add model aliases**
     ```typescript
-    // src/calculator/normalizer.ts
+    // packages/calculator/src/normalizer.ts
 
     const DEFAULT_ALIASES = new Map<string, string>([
       // ... existing aliases
@@ -144,37 +144,37 @@ Provider detection should rely on `gen_ai.system` as the primary signal. Model n
 
 The pricing system uses a factory pattern with YAML-based pricing tables:
 
-1. **Pricing is YAML-based**: Create a `pricing-tables/new-provider.yaml` file
-2. **PricingTable loads all YAML files**: No registry pattern needed — the `loadPricingData()` function loads all tables from `pricing-tables/` directory
+1. **Pricing is YAML-based**: Create a `packages/pricing/pricing-tables/new-provider.yaml` file
+2. **PricingTable loads all YAML files**: No registry pattern needed — the `loadPricingData()` function loads all tables from `packages/pricing/pricing-tables/` directory
 3. **Wildcard support**: The `PricingTable` supports wildcard patterns in model names (e.g., `new-model-*` matches all variants)
 
 ```typescript
 // The PricingTable is created via factory:
-// src/pricing/table.ts
+// packages/pricing/src/table.ts
 export function createPricingTable(data: PricingTableData): PricingTable {
   // Returns an immutable-style table with getPrice(), supports(), getAllModels()
 }
 
 // Adding a new provider just means adding a YAML file.
-// The loader picks it up automatically from pricing-tables/
+// The loader picks it up automatically from packages/pricing/pricing-tables/
 ```
 
 ### Step 4: Add Unit Tests
 
  1. **Create pricing tests**
     ```typescript
-    // tests/unit/pricing/new-provider.test.ts
+    // packages/pricing/src/__tests__/new-provider.test.ts
 
     import { describe, it, expect } from 'vitest';
-    import { calculateCost, type PriceEntry } from '../../src/calculator/calculator.js';
-    import { loadPricingData } from '../../src/pricing/loader.js';
-    import { createPricingTable } from '../../src/pricing/table.js';
+    import { calculateCost, type PriceEntry } from '@opencost/calculator';
+    import { loadPricingData } from '@opencost/pricing';
+    import { createPricingTable } from '@opencost/pricing';
     import path from 'node:path';
 
     describe('NewProvider pricing', () => {
       it('should load new-provider pricing table', async () => {
         const data = await loadPricingData({
-          tablesDir: path.resolve(import.meta.dirname, '../../../pricing-tables'),
+          tablesDir: path.resolve(import.meta.dirname, '../pricing-tables'),
         });
         const table = createPricingTable(data);
 
@@ -188,11 +188,11 @@ export function createPricingTable(data: PricingTableData): PricingTable {
 
  2. **Create normalizer tests**
     ```typescript
-    // tests/unit/normalizer.test.ts (extend existing)
+    // packages/calculator/src/__tests__/normalizer.test.ts (extend existing)
 
     import { describe, it, expect, beforeEach } from 'vitest';
-    import { createModelNormalizer } from '../../src/calculator/normalizer.js';
-    import type { ModelNormalizer } from '../../src/calculator/normalizer.js';
+    import { createModelNormalizer } from '@opencost/calculator';
+    import type { ModelNormalizer } from '@opencost/calculator';
 
     describe('normalize with new provider', () => {
       let normalizer: ModelNormalizer;
@@ -217,7 +217,7 @@ export function createPricingTable(data: PricingTableData): PricingTable {
 ### Step 5: Add Integration Tests
 
 ```typescript
-// tests/integration/pipeline.test.ts (extend existing)
+// packages/exporter/src/__tests__/pipeline.test.ts (extend existing)
 
 describe('new provider pipeline', () => {
   it('should process new-provider span through full pipeline', () => {
@@ -229,16 +229,18 @@ describe('new provider pipeline', () => {
 
 ### Step 6: Update Documentation
 
+### Step 7: Run Tests and Validation
+
 ```bash
 # Run all tests
 pnpm test
 
 # Run specific new provider unit tests
-pnpm vitest run tests/unit/pricing/new-provider
-pnpm vitest run tests/unit/calculator/normalizer
+pnpm vitest run packages/pricing/src/__tests__/new-provider
+pnpm vitest run packages/calculator/src/__tests__/normalizer
 
 # Run integration tests
-pnpm vitest run tests/integration/new-provider
+pnpm vitest run packages/exporter/src/__tests__/new-provider
 
 # Run with coverage
 pnpm test:coverage
@@ -259,12 +261,14 @@ pnpm validate-pricing
 # Create feature branch
 git checkout -b feature/add-new-provider
 
+# Create a changeset
+pnpm changeset
+
 # Commit changes
-git add pricing-tables/new-provider.yaml
-git add src/calculator/normalizer.ts
-git add src/pricing/types.ts
-git add tests/unit/pricing/new-provider.test.ts
-git add tests/unit/calculator/normalizer.test.ts
+git add packages/pricing/pricing-tables/new-provider.yaml
+git add packages/calculator/src/normalizer.ts
+git add packages/pricing/src/__tests__/new-provider.test.ts
+git add packages/calculator/src/__tests__/normalizer.test.ts
 git add docs/supported-models.md
 
 git commit -m "feat: add support for New Provider models
@@ -299,7 +303,7 @@ git push origin feature/add-new-provider
 ### Normalization Rules
 
 ```typescript
-// src/calculator/normalizer.ts
+// packages/calculator/src/normalizer.ts
 
 export interface NormalizationRule {
   /** Regular expression to match against raw model names */
@@ -405,7 +409,7 @@ export const normalizationRules: readonly NormalizationRule[] = [
 4. **Test edge cases** — Unknown models, missing tokens, zero tokens, negative tokens
 5. **Keep pricing tables updated** — Regular sync with provider pricing pages
 6. **Monitor for errors** — Set up alerts for `MODEL_NOT_FOUND` errors in production
-7. **Version your changes** — Use semantic versioning for pricing table updates
+7. **Version your changes** — Use changesets for versioning pricing table updates
 
 ## Provider-Specific Considerations
 

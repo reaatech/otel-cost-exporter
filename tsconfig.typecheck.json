@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@reaatech/otel-cost-exporter-core": ["./packages/core/src/index.ts"],
+      "@reaatech/otel-cost-exporter-pricing": ["./packages/pricing/src/index.ts"],
+      "@reaatech/otel-cost-exporter-calculator": ["./packages/calculator/src/index.ts"],
+      "@reaatech/otel-cost-exporter": ["./packages/exporter/src/index.ts"],
+      "@reaatech/otel-cost-exporter-cli": ["./packages/cli/src/index.ts"]
+    }
+  }
+}

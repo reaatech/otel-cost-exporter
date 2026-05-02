@@ -23,44 +23,41 @@ The `skills/` directory contains specialized knowledge and procedures for common
 
 | Layer | Technology |
 |-------|-----------|
-| Language | TypeScript 5.6+ (strict mode) |
+| Language | TypeScript 5.8+ (strict mode) |
 | Runtime | Node.js 22+ |
-| Package manager | pnpm 9+ |
-| Testing | Vitest 2+ with `@vitest/coverage-v8` |
-| Linting | ESLint 8+ with typescript-eslint |
-| Formatting | Prettier 3+ |
+| Package manager | pnpm 10+ |
+| Build | tsup |
+| Orchestration | turborepo |
+| Versioning | changesets |
+| Testing | Vitest 3+ with `@vitest/coverage-v8` |
+| Linting | Biome 1.9+ |
+| Formatting | Biome 1.9+ (formatting) |
 | Logging | Pino |
 | Validation | Zod |
 | CLI | Commander |
 | Metrics | @opentelemetry/sdk-metrics |
-| Hooks | Husky + lint-staged |
+| Hooks | (none — Biome in CI) |
 
 ## Coding Standards
 
 ### TypeScript Code Style
 
 ```typescript
-/**
- * Package documentation format.
- *
- * @packageDocumentation
- * @module pricing
- *
- * Provides pricing table management and lookup functionality.
- * Supports multiple providers and handles pricing updates with version tracking.
- */
-
 import { readFile } from 'node:fs/promises';
 
 // External packages
-import { type Meter, ValueType } from '@opentelemetry/api';
+import type { Meter } from '@opentelemetry/api';
+import { ValueType } from '@opentelemetry/api';
 import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
 
-// Internal packages
-import type { PriceEntry, PricingTable } from './table.js';
+// Workspace packages
+import type { PriceEntry } from '@reaatech/otel-cost-exporter-core';
+import { PricingTable } from '@reaatech/otel-cost-exporter-pricing';
+import type { PricingProvider } from '@reaatech/otel-cost-exporter-pricing';
+
+// Internal (relative) imports
 import { PricingTableSchema } from './schemas.js';
-import type { PricingProvider } from '@/pricing/types.js';
 
 // Interfaces first
 export interface PricingProvider {
@@ -161,71 +158,62 @@ import path from 'node:path';
 import { ValueType } from '@opentelemetry/api';
 import { z } from 'zod';
 
-// 3. Internal modules (using @/ alias)
-import type { PriceEntry } from '@/pricing/types.js';
-import { PricingTable } from '@/pricing/table.js';
-import { logger } from '@/utils/logger.js';
+// 3. Workspace packages
+import type { PriceEntry } from '@reaatech/otel-cost-exporter-core';
+import { PricingTable } from '@reaatech/otel-cost-exporter-pricing';
+
+// 4. Internal (relative) imports
+import { doThing } from './helpers.js';
 ```
 
 ### Code Organization
 
 ```
-src/
-├── index.ts                    # Library entry point
-├── cli.ts                      # CLI entry point
-├── types/                      # Core domain types and Zod schemas
-│   ├── domain.ts               # CostSpan, AggregationKey, PriceEntry
-│   ├── schemas.ts              # Zod validation schemas
-│   └── index.ts
-├── pricing/                    # Pricing table management
-│   ├── table.ts                # In-memory pricing table
-│   ├── loader.ts               # YAML file loader
-│   ├── updater.ts              # Remote pricing update fetch
-│   ├── types.ts                # Pricing provider interface
-│   └── index.ts
-├── calculator/                 # Cost calculation engine
-│   ├── calculator.ts           # Token → USD conversion
-│   ├── cache.ts                # Pricing lookup cache
-│   ├── normalizer.ts           # Model name normalization
-│   └── index.ts
-├── processor/                  # Span processor (shared kernel)
-│   ├── processor.ts            # Main processing pipeline
-│   ├── factory.ts              # Processor factory
-│   └── index.ts
-├── exporter/                   # Metric export formats
-│   ├── prometheus.ts           # Prometheus pull model
-│   ├── otlp.ts                 # OTLP push model
-│   ├── json.ts                 # JSON/debug export
-│   └── index.ts
-├── collector/                  # OpenTelemetry Collector processor
-│   ├── processor.ts            # Collector processor plugin
-│   └── index.ts
-├── metrics/                    # Metric definitions and builders
-│   ├── definitions.ts          # Metric instrument definitions
-│   ├── builder.ts              # Metric builder with labels
-│   └── index.ts
-├── config/                     # Configuration management
-│   ├── config.ts               # Config types and defaults
-│   ├── loader.ts               # YAML + env var loader
-│   └── index.ts
-├── semconv/                    # GenAI semantic conventions
-│   ├── attributes.ts           # Attribute name constants
-│   └── version.ts              # Pinned semconv version
-└── utils/
-    ├── logger.ts               # Pino logger setup
-    └── index.ts
-
-pricing-tables/                 # Bundled pricing tables (shipped with npm)
-├── openai.yaml
-├── anthropic.yaml
-├── google.yaml
-├── aws-bedrock.yaml
-└── azure.yaml
+packages/
+├── core/                        # @reaatech/otel-cost-exporter-core
+│   └── src/
+│       ├── types/
+│       │   ├── domain.ts        # CostSpan, AggregationKey, PriceEntry
+│       │   └── schemas.ts       # Zod validation schemas
+│       ├── semconv/
+│       │   ├── attributes.ts    # GenAI semantic convention attribute name constants
+│       │   └── version.ts       # Pinned semconv version
+│       ├── utils/
+│       │   ├── logger.ts        # Pino logger setup
+│       │   └── interval.ts      # Interval utilities
+│       └── constants.ts
+├── pricing/                     # @reaatech/otel-cost-exporter-pricing
+│   ├── src/
+│   │   ├── types.ts             # Pricing provider interface
+│   │   ├── table.ts             # In-memory pricing table
+│   │   └── loader.ts            # YAML file loader
+│   └── pricing-tables/          # Bundled YAML files (shipped with npm)
+│       ├── openai.yaml
+│       ├── anthropic.yaml
+│       ├── google.yaml
+│       ├── aws-bedrock.yaml
+│       └── azure.yaml
+├── calculator/                  # @reaatech/otel-cost-exporter-calculator
+│   └── src/
+│       ├── calculator.ts        # Token → USD conversion
+│       ├── normalizer.ts        # Model name normalization
+│       ├── cache.ts             # Pricing lookup cache
+│       └── cost-calculator.ts   # Cost calculation engine
+├── exporter/                    # @reaatech/otel-cost-exporter
+│   └── src/
+│       ├── config/              # Configuration management
+│       ├── processor/           # Span processor (shared kernel)
+│       ├── metrics/             # Metric definitions and builders
+│       ├── exporters/           # Prometheus, OTLP, JSON
+│       ├── otel/                # OpenTelemetry integration
+│       └── collector/           # OTel Collector processor plugin
+├── cli/                         # @reaatech/otel-cost-exporter-cli
+│   └── src/
+│       ├── cli.ts               # CLI entry point
+│       └── commands/            # CLI subcommands
 
 tests/
-├── unit/                       # Unit tests mirroring src/ structure
-├── integration/                # Integration tests
-└── fixtures/                   # Test fixtures (spans, configs)
+└── fixtures/                    # Test fixtures (spans, configs)
 ```
 
 ## Architectural Patterns
@@ -409,7 +397,7 @@ export class ConfigService {
 
 ### Testing Framework
 
-Vitest 2+ with `@vitest/coverage-v8`. Use:
+Vitest 3+ with `@vitest/coverage-v8`. Use:
 - `describe`/`it` blocks for test organization
 - `expect` assertions (Jest-compatible)
 - `vi.fn()` for mocks and spies
@@ -419,8 +407,8 @@ Vitest 2+ with `@vitest/coverage-v8`. Use:
 
 ```typescript
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createCostCalculator } from '@/calculator/calculator.js';
-import type { CostCalculatorDeps } from '@/calculator/calculator.js';
+import { createCostCalculator } from '@reaatech/otel-cost-exporter-calculator';
+import type { CostCalculatorDeps } from '@reaatech/otel-cost-exporter-calculator';
 
 describe('calculateCost', () => {
   let calculator: ReturnType<typeof createCostCalculator>;
@@ -513,13 +501,13 @@ describe('calculateCost', () => {
 | Exporters | **85%** |
 | Overall | **> 85%** |
 
-Coverage thresholds are enforced in `vitest.config.ts` with watermarks at 70%/85%.
+Coverage thresholds are enforced in each package's `vitest.config.ts` with watermarks at 70%/85%.
 
 ### Benchmark Tests
 
 ```typescript
 import { bench, describe } from 'vitest';
-import { createCostCalculator } from '@/calculator/calculator.js';
+import { createCostCalculator } from '@reaatech/otel-cost-exporter-calculator';
 
 describe('CostCalculator benchmarks', () => {
   const pricing = createMockPricingProvider();
@@ -541,8 +529,8 @@ describe('CostCalculator benchmarks', () => {
 
 ### Adding a New Provider
 
-1. Create pricing table in `pricing-tables/`
-2. Add model normalization rules in `src/calculator/normalizer.ts`
+1. Create pricing table in `packages/pricing/pricing-tables/`
+2. Add model normalization rules in `packages/calculator/src/normalizer.ts`
 3. Add provider to `gen_ai.system` mapping
 4. Add tests for new provider
 5. Update documentation
@@ -553,11 +541,10 @@ describe('CostCalculator benchmarks', () => {
 2. Review changes in PR
 3. Run tests: `pnpm test`
 4. Validate: `pnpm validate-pricing`
-5. Update version: `pnpm bump-patch`
 
 ### Adding New Metrics
 
-1. Define metric in `src/metrics/definitions.ts`
+1. Define metric in `packages/exporter/src/metrics/definitions.ts`
 2. Add to metrics builder
 3. Update export formats
 4. Add tests and documentation
@@ -640,14 +627,10 @@ curl -X POST http://localhost:8888/debug/pricing \
 ### Pre-commit Checks
 
 ```bash
-# Run all checks before commit
-make pre-commit   # runs: pnpm typecheck && pnpm lint && pnpm test:coverage
-
-# Individual checks
-make typecheck    # TypeScript compilation check
-make lint         # ESLint
-make format-check # Prettier
-make test-coverage # Vitest with coverage thresholds
+pnpm typecheck    # tsc --noEmit -p tsconfig.typecheck.json
+pnpm lint         # biome check .
+pnpm format       # biome format --write .
+pnpm test         # vitest run (all packages via turbo)
 ```
 
 ### Pull Request Requirements
@@ -657,17 +640,14 @@ make test-coverage # Vitest with coverage thresholds
 - [ ] TypeScript compiles clean (`pnpm typecheck`)
 - [ ] No security vulnerabilities (`pnpm audit --audit-level=high`)
 - [ ] Documentation updated (CHANGELOG, README if needed)
-- [ ] Prettier formatting applied (`pnpm format`)
+- [ ] Biome formatting applied (`pnpm format`)
 
 ### Release Checklist
 
-- [ ] Update version in `package.json`
-- [ ] Update `CHANGELOG.md`
-- [ ] Run full test suite: `make test-coverage`
-- [ ] Build: `pnpm build`
-- [ ] Tag release: `git tag -a v1.2.3 -m "Release v1.2.3"`
-- [ ] Push tag: `git push origin v1.2.3`
-- [ ] GitHub Actions will build, test, and publish to npm + Docker
+- [ ] Run `pnpm changeset` to record changes
+- [ ] Merge to main — CI opens "Version Packages" PR
+- [ ] Review version bumps and auto-generated CHANGELOGs
+- [ ] Merge the Version Packages PR — CI publishes to npm + GitHub Packages
 
 ## Troubleshooting
 
@@ -680,6 +660,9 @@ make test-coverage # Vitest with coverage thresholds
 | Export failures | Network issues | Check connectivity, increase retry count |
 | Slow processing | No batching | Enable batch processing in config |
 | TypeScript errors in node_modules | Dep mismatch | Run `pnpm install --frozen-lockfile` |
+| Workspace package not found | Missing build | Run `pnpm build` to compile all workspace packages |
+| Import resolution failure | Missing `exports` map | Verify each package's `package.json` exports field |
+| Turborepo cache miss | Changed inputs | Run `pnpm test --force` to bypass cache if needed |
 
 ### Getting Help
 

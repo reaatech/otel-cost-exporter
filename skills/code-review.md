@@ -50,14 +50,14 @@ This skill provides a structured code review checklist for the otel-cost-exporte
 ### Code Quality
 
 - [ ] TypeScript strict mode passes (`tsc --noEmit`)
-- [ ] ESLint passes without errors (`pnpm lint`)
-- [ ] Prettier formatting applied (`pnpm format:check`)
+- [ ] Biome passes without errors (`pnpm lint`)
+- [ ] Biome formatting applied (`pnpm format`)
 - [ ] No `any` types in production code (tests excluded)
 - [ ] Functions are small and focused (< 50 lines preferred)
 - [ ] Naming follows conventions (see AGENTS.md)
 - [ ] Comments explain "why" not "what"
 - [ ] No commented-out code blocks
-- [ ] Import paths use `@/` alias for internal modules
+- [ ] Import paths use workspace package names (`@reaatech/otel-cost-exporter-*`) or `.js` relative imports
 - [ ] Exports are explicit (no barrel-file re-export abuse)
 
 ### Documentation
@@ -79,7 +79,7 @@ This skill provides a structured code review checklist for the otel-cost-exporte
 
 ### Integration
 
-- [ ] Collector processor mode tested
+- [ ] Collector service tested
 - [ ] In-process exporter mode tested
 - [ ] Prometheus export format tested
 - [ ] OTLP export format tested
@@ -141,7 +141,7 @@ This change involves [describe concern]. Before merging, please:
 
 1. Verify no secrets are exposed: [specific check]
 2. Confirm input validation: [specific check]
-3. Run `make security-scan` and attach output
+3. Run `pnpm audit --audit-level=high` and attach output
 
 Security concerns are tracked in security-review.md skill.
 ```
