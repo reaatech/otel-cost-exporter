@@ -65,7 +65,8 @@ This skill provides procedures for updating pricing tables in the otel-cost-expo
    gh pr merge --squash --delete-branch
 
    # The release workflow will automatically:
-   # - Bump patch version
+   # - Create a changeset (via pnpm changeset)
+   # - Version packages based on changesets
    # - Create GitHub release
    # - Publish to package registries
    ```
@@ -111,14 +112,14 @@ aws pricing get-products --service-code AmazonBedrock --filters Type=TERM_MATCH,
 1. **Locate the pricing table file**
    ```bash
    # Provider pricing tables are in:
-   ls pricing-tables/
+   ls packages/pricing/pricing-tables/
    # Output: anthropic.yaml aws-bedrock.yaml azure.yaml google.yaml openai.yaml
    ```
 
 2. **Edit the pricing table**
    ```bash
    # Example: Update OpenAI pricing
-   vim pricing-tables/openai.yaml
+   vim packages/pricing/pricing-tables/openai.yaml
    ```
 
 3. **Update the version and timestamp**
@@ -168,20 +169,20 @@ pnpm pricing-diff
 ### Step 4: Update Version
 
 ```bash
-# Bump patch version for pricing updates
-pnpm bump-patch
+# Create a changeset to record the pricing update
+pnpm changeset
 
-# Or manually update version files:
-# - src/semconv/version.ts
-# - src/pricing/version.ts
-# - CHANGELOG.md
+# This will prompt for:
+# - Which packages changed (e.g., @opencost/pricing)
+# - Bump type (patch for pricing updates)
+# - Summary message
 ```
 
 ### Step 5: Commit and Push
 
 ```bash
 # Create commit with conventional commit format
-git add pricing-tables/
+git add packages/pricing/pricing-tables/
 git commit -m "chore(pricing): update OpenAI pricing for GPT-4 models
 
 - GPT-4 input: $30.00 -> $35.00 per 1M tokens
@@ -204,7 +205,7 @@ If a pricing update causes issues:
 git revert HEAD
 
 # Or checkout specific previous version
-git checkout <previous-commit> -- pricing-tables/
+git checkout <previous-commit> -- packages/pricing/pricing-tables/
 
 # Rebuild and redeploy
 pnpm build
@@ -244,6 +245,7 @@ Before merging any pricing update:
 - [ ] Effective dates are in the past or today
 - [ ] No duplicate model entries
 - [ ] Version number is incremented
+- [ ] Changeset added (run `pnpm changeset` if not already present)
 - [ ] CHANGELOG is updated
 - [ ] Tests pass
 - [ ] Pricing diff is reviewed and approved
@@ -291,10 +293,10 @@ tsx scripts/validate-pricing.ts
 
 ```bash
 # Run specific pricing tests
-pnpm vitest run tests/unit/pricing
+pnpm vitest run packages/pricing/src/__tests__/
 
 # Check for calculation errors
-pnpm vitest run tests/unit/calculator
+pnpm vitest run packages/calculator/src/__tests__/
 ```
 
 ### Issue: Model not found after update
@@ -304,5 +306,5 @@ pnpm vitest run tests/unit/calculator
 tsx scripts/normalizer-test.ts --model "gpt-4-turbo"
 
 # Add alias if needed
-# Edit src/calculator/normalizer.ts
+# Edit packages/calculator/src/normalizer.ts
 ```

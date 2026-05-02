@@ -1,4 +1,4 @@
-import type { CostSpan } from '../../src/types/domain.js';
+import type { CostSpan } from '@reaatech/otel-cost-exporter-core';
 
 export function createSampleSpan(overrides: Partial<CostSpan> = {}): CostSpan {
   return {

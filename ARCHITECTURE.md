@@ -2,7 +2,9 @@
 
 ## System Overview
 
-The otel-cost-exporter is designed as a modular, extensible system that integrates seamlessly with the OpenTelemetry ecosystem. It operates as either an OpenTelemetry Collector processor or an in-process exporter, processing GenAI semantic convention spans to calculate and emit cost metrics.
+The otel-cost-exporter is designed as a modular, extensible system that integrates seamlessly with the OpenTelemetry ecosystem. It operates as either a standalone OTLP service or an in-process exporter, processing GenAI semantic convention spans to calculate and emit cost metrics.
+
+The codebase is organized as a **pnpm monorepo** with five focused packages forming a linear dependency chain.
 
 ## Design Principles
 
@@ -11,135 +13,46 @@ The otel-cost-exporter is designed as a modular, extensible system that integrat
 3. **Pluggable Pricing**: Pricing tables are externalized and updatable without code changes
 4. **Performance-First**: Optimized for high-throughput span processing with minimal overhead
 5. **Observability Built-In**: Comprehensive internal metrics and structured logging
+6. **Monorepo Design**: Domain logic is split into focused packages (`core` → `pricing` → `calculator` → `exporter` → `cli`) forming a linear dependency chain that enforces clean boundaries
 
 ## Component Architecture
 
-### Entry Points — Shared Kernel
-
-The core logic is shared between both deployment modes. Only the lifecycle management and host integration differ.
+### Package Structure
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         Shared Kernel                                        │
-│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────────┐   │
-│  │ Span         │ │ Model        │ │ Cost         │ │ Metrics          │   │
-│  │ Processor    │ │ Normalizer   │ │ Calculator   │ │ Builder          │   │
-│  └──────┬───────┘ └──────┬───────┘ └──────┬───────┘ └────────┬─────────┘   │
-│         └────────────────┼────────────────┼──────────────────┘             │
-│                          ▼                                                  │
-│  ┌──────────────────────────────────────────────────────────────────────┐  │
-│  │                    Pricing Service (shared)                            │  │
-│  └──────────────────────────────────────────────────────────────────────┘  │
-│                          │                                                  │
-│                          ▼                                                  │
-│  ┌──────────────────────────────────────────────────────────────────────┐  │
-│  │                    Export Layer (shared)                               │  │
-│  └──────────────────────────────────────────────────────────────────────┘  │
-└───────────────┬──────────────────────────────────────┬──────────────────────┘
-                │                                      │
-    ┌───────────▼───────────────┐        ┌─────────────▼─────────────┐
-    │  Collector Processor      │        │   In-Process Exporter     │
-    │                           │        │                           │
-    │  - components.Host lifecycle│      │  - SDK integration         │
-    │  - Factory pattern         │        │  - Direct export           │
-    │  - Config from OTel conf   │        │  - Programmatic config     │
-    │  - Lifecycle mgmt          │        │  - Importable TypeScript library   │
-    └───────────────────────────┘        └───────────────────────────┘
+packages/
+├── core/          — Domain types, Zod schemas, semconv, constants, logger
+├── pricing/       — Pricing tables, YAML loader, bundled provider data
+├── calculator/    — Cost calculator, model normalizer, LRU cache, engine
+├── exporter/      — Span processor, metrics builder, exporters, OTel SDK integration, collector service, config management
+└── cli/           — CLI commands, entry point
 ```
 
-Below are the detailed data flow stages shared by both entry points:
+### Dependency Graph
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              Entry Points                                    │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  ┌──────────────────────┐          ┌──────────────────────┐                │
-│  │  Collector Processor │          │   In-Process Exporter│                │
-│  │                      │          │                      │                │
-│  │  - Factory pattern   │          │  - SDK integration   │                │
-│  │  - Lifecycle mgmt    │          │  - Direct export     │                │
-│  │  - Config from OTel  │          │  - Programmatic cfg  │                │
-│  └──────────────────────┘          └──────────────────────┘                │
-│              │                                  │                           │
-│              └──────────────────┬───────────────┘                           │
-│                                 │                                           │
-│                                 ▼                                           │
-│                    ┌─────────────────────┐                                  │
-│                    │   Span Processor    │                                  │
-│                    │                     │                                  │
-│                    │  - Attribute extract│                                  │
-│                    │  - Validation       │                                  │
-│                    │  - Batch processing │                                  │
-│                    └─────────────────────┘                                  │
-│                                 │                                           │
-│                                 ▼                                           │
-│                    ┌─────────────────────┐                                  │
-│                    │  Model Normalizer   │                                  │
-│                    │                     │                                  │
-│                    │  - Name resolution  │                                  │
-│                    │  - Provider detect  │                                  │
-│                    │  - Alias mapping    │                                  │
-│                    └─────────────────────┘                                  │
-│                                 │                                           │
-│                                 ▼                                           │
-│                    ┌─────────────────────┐                                  │
-│                    │  Cost Calculator    │                                  │
-│                    │                     │                                  │
-│                    │  - Pricing lookup   │                                  │
-│                    │  - Cost computation │                                  │
-│                    │  - Cache management │                                  │
-│                    └─────────────────────┘                                  │
-│                                 │                                           │
-│                                 ▼                                           │
-│                    ┌─────────────────────┐                                  │
-│                    │   Metrics Builder   │                                  │
-│                    │                     │                                  │
-│                    │  - Label assembly   │                                  │
-│                    │  - Metric creation  │                                  │
-│                    │  - Aggregation      │                                  │
-│                    └─────────────────────┘                                  │
-│                                 │                                           │
-│                                 ▼                                           │
-│                    ┌─────────────────────────────────────┐                  │
-│                    │         Export Layer                │                  │
-│                    │                                     │                  │
-│                    │  ┌──────────┐ ┌──────────┐ ┌──────┐│                  │
-│                    │  │Prometheus│ │   OTLP   │ │ JSON ││                  │
-│                    │  │ Exporter │ │ Exporter │ │Export││                  │
-│                    │  └──────────┘ └──────────┘ └──────┘│                  │
-│                    └─────────────────────────────────────┘                  │
-│                                 │                                           │
-│                                 ▼                                           │
-│                    ┌─────────────────────┐                                  │
-│                    │   Pricing Service   │                                  │
-│                    │                     │                                  │
-│                    │  - Table management │                                  │
-│                    │  - Update handling  │                                  │
-│                    │  - Validation       │                                  │
-│                    └─────────────────────┘                                  │
-│                                 │                                           │
-│                                 ▼                                           │
-│                    ┌─────────────────────┐                                  │
-│                    │   Pricing Tables    │                                  │
-│                    │                     │                                  │
-│                    │  - Bundled tables   │                                  │
-│                    │  - Custom overrides │                                  │
-│                    │  - Version tracking │                                  │
-│                    └─────────────────────┘                                  │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
+core → pricing → calculator → exporter → cli
 ```
 
-## Data Flow
+### Package Responsibilities
 
-### 1. Span Ingestion
+| Package | npm Name | Responsibility |
+|---------|----------|----------------|
+| `core` | `@reaatech/otel-cost-exporter-core` | Domain types (`CostSpan`, `PriceEntry`), Zod schemas, GenAI semantic convention attributes, constants, logger, interval utilities |
+| `pricing` | `@reaatech/otel-cost-exporter-pricing` | Bundled provider pricing tables (`openai.yaml`, `anthropic.yaml`, `google.yaml`, `aws-bedrock.yaml`, `azure.yaml`), YAML loader, table management, update handling |
+| `calculator` | `@reaatech/otel-cost-exporter-calculator` | Cost calculation engine (tokens → USD), model name normalizer with alias resolution, LRU pricing cache |
+| `exporter` | `@reaatech/otel-cost-exporter` | Span processor, metrics builder, export layer (Prometheus/OTLP/JSON), OTel SDK integration, Collector OTLP service, configuration loader & watcher |
+| `cli` | `@reaatech/otel-cost-exporter-cli` | CLI entry point (Commander-based), `serve`, `validate`, `report`, `config` commands |
+
+### Data Flow
+
+#### 1. Span Ingestion
 
 ```
 GenAI Span → Attribute Extraction → Validation → Normalization
 ```
 
-The span processor receives OpenTelemetry spans and extracts relevant attributes:
+The span processor (in `packages/exporter/src/processor/`) receives OpenTelemetry spans and extracts relevant attributes:
 
 - `gen_ai.system` - Provider identifier (e.g., `openai`, `anthropic`) — primary provider signal
 - `gen_ai.request.model` - Model identifier
@@ -148,26 +61,26 @@ The span processor receives OpenTelemetry spans and extracts relevant attributes
 - `service.name` - Service identifier
 - Custom attributes for additional labels
 
-### 2. Model Resolution
+#### 2. Model Resolution
 
 ```
 gen_ai.system + gen_ai.request.model → Provider Detection → Alias Resolution → Pricing Key
 ```
 
-The model normalizer:
+The model normalizer (in `packages/calculator/src/normalizer.ts`):
 
 1. Uses `gen_ai.system` as the primary provider signal (falls back to model name pattern matching if absent)
 2. Resolves aliases (e.g., "gpt4" → "gpt-4")
 3. Generates pricing lookup key
 4. Handles unknown models gracefully
 
-### 3. Cost Calculation
+#### 3. Cost Calculation
 
 ```
 Pricing Key + Token Counts → Table Lookup → Cost Computation → Cache
 ```
 
-The cost calculator:
+The cost calculator (in `packages/calculator/src/cost-calculator.ts`):
 
 1. Checks cache for pricing information
 2. Falls back to pricing table lookup
@@ -175,13 +88,13 @@ The cost calculator:
 4. Updates cache with TTL
 5. Handles missing pricing with configurable defaults
 
-### 4. Metrics Generation
+#### 4. Metrics Generation
 
 ```
 Cost Data + Labels → Metric Assembly → Aggregation → Export
 ```
 
-The metrics builder:
+The metrics builder (in `packages/exporter/src/metrics/builder.ts`):
 
 1. Assembles standard labels (model, provider, service)
 2. Adds custom labels from configuration
@@ -189,13 +102,13 @@ The metrics builder:
 4. Optionally aggregates by time window
 5. Prepares for export format
 
-### 5. Export
+#### 5. Export
 
 ```
 Metrics → Format Conversion → Transport → Destination
 ```
 
-Export formats supported:
+Export formats supported (in `packages/exporter/src/exporters/`):
 
 - **Prometheus**: Text format for pull-based scraping
 - **OTLP**: Binary format for push to OTel backends
@@ -206,6 +119,8 @@ Export formats supported:
 ### Table Structure
 
 All prices are stored internally as USD per 1,000,000 tokens. Conversion from provider-native units (per-1K, per-1M) happens at table load time.
+
+Bundled pricing tables are located in `packages/pricing/pricing-tables/`:
 
 ```yaml
 version: "2024.01"
@@ -223,7 +138,7 @@ providers:
         input_token_price: 10.0
         output_token_price: 30.0
         effective_date: "2024-01-01"
-  
+
   anthropic:
     models:
       claude-3-opus:
@@ -244,10 +159,10 @@ Scheduled Check → Fetch from pricing source → Version Compare → Download �
 2. **Fetch**: Download pricing table from configured source (GitHub releases, S3 bucket, or custom URL)
 3. **Version Compare**: Compare local vs remote version
 4. **Download**: Fetch new pricing table if available
-5. **Validate**: Verify table format and signatures
+5. **Validate**: Verify table format and structure with Zod schemas
 6. **Apply**: Hot-reload pricing table via atomic pointer swap (no restart required)
 
-The default pricing source is `https://github.com/reaatech/otel-cost-exporter/releases/latest/download/pricing-tables.tar.gz`. Custom sources can be configured via `pricing.update_url`.
+Pricing table updates ship via changesets patch releases of `@reaatech/otel-cost-exporter-pricing`. The default pricing source is `https://github.com/reaatech/otel-cost-exporter/releases/latest/download/pricing-tables.tar.gz`. Custom sources can be configured via `pricing.update_url`.
 
 ### Pricing Override Mechanism
 
@@ -285,7 +200,6 @@ interface Config {
   metrics: MetricsConfig;
   export: ExportConfig;
   logging: LoggingConfig;
-  processor: ProcessorConfig;
 }
 
 interface PricingConfig {
@@ -315,6 +229,8 @@ interface ExportConfig {
   interval?: string;                  // env: OTEL_COST_EXPORT_INTERVAL
   /** Export endpoint URL */
   endpoint?: string;                  // env: OTEL_COST_EXPORT_ENDPOINT
+  /** Health check port */
+  healthPort?: number;                // env: OTEL_COST_EXPORT_HEALTH_PORT
 }
 ```
 
@@ -322,12 +238,14 @@ interface ExportConfig {
 
 ### Collector Processor Mode
 
-The "collector processor" mode is implemented as a **standalone OTLP pipeline service** — not as a Go collector plugin. It runs as a Node.js process that receives spans via OTLP (gRPC/HTTP), processes them through the shared kernel, and exports cost metrics to Prometheus, OTLP backends, or JSON. This enables sidecar and gateway deployment patterns without requiring Go compilation.
+The collector processor mode is implemented as a **standalone OTLP pipeline service** — not as a Go collector plugin. It runs as a Node.js process that receives spans via OTLP (gRPC/HTTP), processes them through the shared kernel, and exports cost metrics to Prometheus, OTLP backends, or JSON. This enables sidecar and gateway deployment patterns without requiring Go compilation.
+
+The service entry point is `packages/exporter/src/collector/server.ts`, invoked via the CLI: `otel-cost-exporter serve`.
 
 ### GenAI Semantic Convention Version
 
 The GenAI semantic conventions are experimental in OpenTelemetry. This project:
-- Pins to a specific semconv version (declared in `src/semconv/version.ts`)
+- Pins to a specific semconv version (declared in `packages/core/src/semconv/version.ts`)
 - Uses an attribute mapping layer that decouples experimental attribute names from core logic
 - Supports configuration-driven overrides: `gen_ai.request.model` → custom attribute name
 
@@ -431,14 +349,14 @@ class ConfigService {
 
 ### Pricing Table Security
 
-- **Signature Verification**: Tables signed with GPG keys
 - **HTTPS Only**: All remote table fetches over HTTPS
 - **Version Pinning**: Optional version pinning for stability
+- **Schema Validation**: All pricing data validated with Zod schemas on load
 
 ### Access Control
 
 - **Read-Only Pricing**: Pricing tables are read-only after load
-- **Configuration Validation**: All config values validated
+- **Configuration Validation**: All config values validated with Zod
 - **Resource Limits**: Configurable memory and CPU limits
 
 ## Deployment Patterns
@@ -463,7 +381,7 @@ spec:
           name: metrics
 ```
 
-### Pattern 2: Collector Processor
+### Pattern 2: Standalone OTLP Service
 
 ```yaml
 receivers:
@@ -495,6 +413,21 @@ service:
 
 ```
 Application → OTLP → Cost Exporter Gateway → Prometheus/Backend
+```
+
+The gateway is run via the CLI entry point in `packages/cli`:
+
+```bash
+otel-cost-exporter serve --config otel-cost-exporter.yaml
+```
+
+### Docker Deployment
+
+Docker images are built from `docker/Dockerfile`:
+
+```bash
+docker build -f docker/Dockerfile -t otel-cost-exporter .
+docker run -p 8888:8888 -p 4317:4317 otel-cost-exporter
 ```
 
 ## Monitoring the Exporter
@@ -541,6 +474,8 @@ otel_cost_exporter_pricing_table_version{provider="anthropic"} 20240115
 
 ### Custom Pricing Providers
 
+Located in `@reaatech/otel-cost-exporter-pricing`:
+
 ```typescript
 export interface PricingProvider {
   getPrice(model: string): { inputPrice: number; outputPrice: number } | null;
@@ -551,6 +486,8 @@ export interface PricingProvider {
 
 ### Custom Exporters
 
+Located in `@reaatech/otel-cost-exporter`:
+
 ```typescript
 export interface MetricsExporter {
   export(metrics: CostMetric[]): Promise<void>;
@@ -559,6 +496,8 @@ export interface MetricsExporter {
 ```
 
 ### Custom Normalizers
+
+Located in `@reaatech/otel-cost-exporter-calculator`:
 
 ```typescript
 export interface ModelNormalizer {
@@ -591,6 +530,15 @@ export interface ModelNormalizer {
 │                                                              │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+### Test Organization
+
+| Layer | Location |
+|-------|----------|
+| Unit tests | Per-package `__tests__/` (e.g., `packages/calculator/src/__tests__/`) |
+| Integration tests | Per-package `__tests__/` |
+| Shared fixtures | Root `tests/fixtures/` (sample spans, configs) |
+| Benchmarks | Co-located with unit tests (e.g., `calculator.bench.ts`) |
 
 ### Test Data
 

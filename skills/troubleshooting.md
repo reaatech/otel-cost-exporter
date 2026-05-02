@@ -38,6 +38,16 @@ cost_exporter:
 
 Tip: Pino will automatically pick up the `level` and format from this config. Set `COST_EXPORTER_LOG_LEVEL=debug` as an env-var alternative.
 
+### CLI Debug Flags
+
+```bash
+# Run the CLI with verbose debug output
+otel-cost-exporter serve --config=config.yaml --debug --verbose
+
+# Or run via node directly
+node packages/cli/dist/cli.js serve --config=config.yaml --debug --verbose
+```
+
 ### Debug Endpoints
 
 ```bash
@@ -60,16 +70,6 @@ curl http://localhost:8888/debug/cache
 curl http://localhost:8888/debug/spans
 ```
 
-### Debug Flags
-
-```bash
-# Run with verbose debug output
-otel-cost-exporter --config=config.yaml --debug --verbose
-
-# Enable specific debug categories
-otel-cost-exporter --debug=pricing,cache,export
-```
-
 ## Common Error Scenarios
 
 ### 1. Unknown Model Errors
@@ -86,13 +86,13 @@ otel-cost-exporter --debug=pricing,cache,export
 
 **Diagnosis:**
 ```bash
-# Check if model exists in pricing table
-rg "gpt-4-turbo-2024-01-01" pricing-tables/
+# Check if model exists in pricing table (now under packages/pricing/)
+rg "gpt-4-turbo-2024-01-01" packages/pricing/pricing-tables/
 
-# Test model normalization
+# Test model normalization (via calculator package)
 tsx scripts/normalizer-test.ts --model "gpt-4-turbo-2024-01-01"
 
-# Check pricing lookup
+# Check pricing lookup via debug endpoint
 curl -X POST http://localhost:8888/debug/pricing \
   -d '{"model": "gpt-4-turbo-2024-01-01"}'
 ```
@@ -100,7 +100,7 @@ curl -X POST http://localhost:8888/debug/pricing \
 **Solutions:**
 1. **Add model to pricing table**
    ```yaml
-   # pricing-tables/openai.yaml
+   # packages/pricing/pricing-tables/openai.yaml
    providers:
      openai:
        models:
@@ -111,7 +111,7 @@ curl -X POST http://localhost:8888/debug/pricing \
 
 2. **Add model alias**
    ```typescript
-   // src/calculator/normalizer.ts
+   // packages/calculator/src/normalizer.ts
    const MODEL_ALIASES: Record<string, string> = {
      'gpt-4-turbo-2024-01-01': 'openai/gpt-4-turbo',
    };
@@ -135,10 +135,10 @@ curl -X POST http://localhost:8888/debug/pricing \
 **Diagnosis:**
 ```bash
 # Run with the Node.js inspector to capture a heap snapshot
-node --inspect-brk --enable-source-maps dist/cli.js --config=config.yaml
+node --inspect-brk --enable-source-maps packages/cli/dist/cli.js serve --config=config.yaml
 
 # Or use clinic.js to generate a flamegraph / heap profile
-clinic doctor -- node dist/cli.js --config=config.yaml
+clinic doctor -- node packages/cli/dist/cli.js serve --config=config.yaml
 
 # Check cache statistics
 curl http://localhost:8888/debug/cache
@@ -243,10 +243,10 @@ kubectl logs -f deployment/otel-cost-exporter | grep export
 curl http://localhost:8888/metrics | grep process
 
 # Profile CPU usage with Node.js inspector (30s sampling)
-node --inspect --cpu-prof dist/cli.js --config=config.yaml & sleep 30 && kill %1
+node --inspect --cpu-prof packages/cli/dist/cli.js serve --config=config.yaml & sleep 30 && kill %1
 
 # Alternatively use clinic.js flamegraph
-clinic flame -- node dist/cli.js --config=config.yaml
+clinic flame -- node packages/cli/dist/cli.js serve --config=config.yaml
 
 # Check span queue
 curl http://localhost:8888/debug/queue
@@ -291,11 +291,11 @@ curl http://localhost:8888/debug/queue
 
 **Diagnosis:**
 ```bash
-# Test cost calculation
+# Test cost calculation via debug endpoint
 curl -X POST http://localhost:8888/debug/calculate \
   -d '{"model": "gpt-4", "input_tokens": 1000, "output_tokens": 500}'
 
-# Check pricing table
+# Check pricing table for a specific provider
 curl http://localhost:8888/debug/pricing?provider=openai
 
 # Verify token extraction
@@ -315,7 +315,7 @@ curl http://localhost:8888/debug/span/parse \
 
 2. **Check calculation formula**
    ```typescript
-   // Verify in src/calculator/calculator.ts
+   // Verify in packages/calculator/src/calculator.ts
    const TOKENS_PER_UNIT = 1_000_000;
 
    export function calculateCost(
@@ -462,15 +462,12 @@ kubectl apply -f deployments/kubernetes/deployment.yaml
 ### Rollback to Previous Version
 
 ```bash
-# List available versions
-gh release list
-
-# Download previous version
-gh release download v1.2.3 --pattern='otel-cost-exporter-*'
+# List available Docker image tags
+gh api repos/reaatech/otel-cost-exporter/packages/container/otel-cost-exporter/versions
 
 # Deploy previous version
 kubectl set image deployment/otel-cost-exporter \
-  otel-cost-exporter=ghcr.io/reaatech/otel-cost-exporter:v1.2.3
+  otel-cost-exporter=ghcr.io/reaatech/otel-cost-exporter:<previous-tag>
 ```
 
 ### Emergency Pricing Override
@@ -559,7 +556,7 @@ curl -X POST http://localhost:8888/debug/cache/warm
 
 ## Logging Reference
 
-otl-cost-exporter uses Pino for structured JSON logging. The logger is configured via the `cost_exporter.logging` block or the `COST_EXPORTER_LOG_LEVEL` environment variable.
+otel-cost-exporter uses Pino for structured JSON logging. The logger is configured via the `cost_exporter.logging` block or the `COST_EXPORTER_LOG_LEVEL` environment variable.
 
 ### Log Levels
 

@@ -1,0 +1,46 @@
+{
+  "name": "@reaatech/otel-cost-exporter-calculator",
+  "version": "0.1.0",
+  "description": "LLM token cost calculator with model name normalization and LRU caching",
+  "license": "MIT",
+  "author": "Rick Somers <rick@reaatech.com> (https://reaatech.com)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/reaatech/otel-cost-exporter.git",
+    "directory": "packages/calculator"
+  },
+  "homepage": "https://github.com/reaatech/otel-cost-exporter/tree/main/packages/calculator#readme",
+  "bugs": {
+    "url": "https://github.com/reaatech/otel-cost-exporter/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@reaatech/otel-cost-exporter-core": "workspace:*",
+    "@reaatech/otel-cost-exporter-pricing": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.1"
+  }
+}

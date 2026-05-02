@@ -1,0 +1,59 @@
+{
+  "name": "@reaatech/otel-cost-exporter",
+  "version": "0.1.0",
+  "description": "OpenTelemetry-native LLM cost metrics exporter with multi-provider pricing support",
+  "license": "MIT",
+  "author": "Rick Somers <rick@reaatech.com> (https://reaatech.com)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/reaatech/otel-cost-exporter.git",
+    "directory": "packages/exporter"
+  },
+  "homepage": "https://github.com/reaatech/otel-cost-exporter/tree/main/packages/exporter#readme",
+  "bugs": {
+    "url": "https://github.com/reaatech/otel-cost-exporter/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/semantic-conventions": "^1.30.0",
+    "@opentelemetry/exporter-metrics-otlp-http": "^0.57.0",
+    "@opentelemetry/exporter-prometheus": "^0.57.0",
+    "@opentelemetry/resources": "^1.30.0",
+    "@opentelemetry/sdk-metrics": "^1.30.0",
+    "@opentelemetry/sdk-node": "^0.57.0",
+    "@opentelemetry/sdk-trace-base": "^1.30.0",
+    "@opentelemetry/sdk-trace-node": "^1.30.0",
+    "@reaatech/otel-cost-exporter-calculator": "workspace:*",
+    "@reaatech/otel-cost-exporter-core": "workspace:*",
+    "@reaatech/otel-cost-exporter-pricing": "workspace:*",
+    "pino": "^10.0.0",
+    "yaml": "^2.6.1",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.1"
+  }
+}

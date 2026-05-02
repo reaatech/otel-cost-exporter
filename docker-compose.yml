@@ -2,7 +2,7 @@ services:
   otel-cost-exporter:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: docker/Dockerfile
     command:
       - 'serve'
       - '--port=8888'

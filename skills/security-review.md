@@ -4,9 +4,8 @@
   Implementation Status: PLANNING
   Target Phase: 4 (Production Readiness)
   Prerequisites: Phase 1-3 (Foundation, Core, Integration)
-  Note: Features referenced here (--secure-mode, audit logging, GPG signature
-        verification, admin endpoints) are planned for Phase 4+ and may not
-        be implemented in initial releases.
+  Note: Features referenced here (audit logging, admin endpoints)
+        are planned for Phase 4+ and may not be implemented in initial releases.
 -->
 
 ## Overview
@@ -136,9 +135,11 @@ debug:
 
 ### Configuration Validation
 
-Zod schemas validate all configuration at startup. Define schemas alongside types:
+Zod schemas validate all configuration at startup. Each package defines schemas alongside its domain types:
 
 ```typescript
+// packages/core/src/schemas.ts (or package-level schemas)
+
 import { z } from 'zod';
 
 export const ConfigSchema = z.object({
@@ -256,32 +257,35 @@ rules:
 #### Dockerfile Security
 
 ```dockerfile
-# Use minimal base image
-FROM node:22-alpine
+# docker/Dockerfile
+FROM node:22-alpine AS base
+RUN npm install -g pnpm@10
 
-# Create non-root user
-RUN addgroup -g 1000 appuser && adduser -u 1000 -G appuser -s /bin/sh -D appuser
-
-# Set working directory
+FROM base AS deps
 WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.json biome.json ./
+COPY packages/ ./packages/
+RUN pnpm install --frozen-lockfile
 
-# Copy package files and install production deps only
-COPY package.json pnpm-lock.yaml ./
-RUN corepack enable && pnpm install --frozen-lockfile --prod
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app ./
+RUN pnpm build
 
-# Copy application code and pricing tables
-COPY dist/ ./dist/
-COPY pricing-tables/ /etc/otel-cost-exporter/pricing/
+FROM base AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=builder /app/turbo.json ./turbo.json
+COPY --from=builder /app/tsconfig.json ./tsconfig.json
+COPY --from=builder /app/biome.json ./biome.json
+COPY --from=builder /app/packages ./packages
+RUN pnpm install --prod --frozen-lockfile
 
-# Use non-root user
-USER appuser
-
-# Expose metrics port
-EXPOSE 8888
-
-# Run application
-ENTRYPOINT ["node", "dist/cli.js"]
-CMD ["--config=/etc/otel-cost-exporter/config.yaml"]
+EXPOSE 8888 8889
+CMD ["node", "packages/cli/dist/cli.js", "serve"]
 ```
 
 #### Image Security Checklist
@@ -297,7 +301,7 @@ CMD ["--config=/etc/otel-cost-exporter/config.yaml"]
 #### Table Verification
 
 ```typescript
-// src/pricing/loader.ts
+// packages/pricing/src/loader.ts
 
 import { createHash } from 'node:crypto';
 import type { PricingTable } from './types.js';
@@ -313,7 +317,6 @@ export function verifyTableSignature(
   publicKey: string,
 ): boolean {
   const hash = createHash('sha256').update(table).digest('hex');
-  // Verify signature using public key (e.g., via crypto.verify)
   return crypto.verify(
     'sha256',
     table,
@@ -343,10 +346,9 @@ export function validateTableSchema(data: unknown): PricingTable {
 ### Process Security
 
 ```bash
-# Run with security flags
-node dist/cli.js \
-  --config=/etc/otel-cost-exporter/config.yaml \
-  --secure-mode
+# Run the CLI serve command
+node packages/cli/dist/cli.js serve \
+  --config=/etc/otel-cost-exporter/config.yaml
 ```
 
 ### Resource Limits
@@ -383,13 +385,8 @@ audit:
 ### Static Analysis
 
 ```bash
-# Run ESLint with security-focused rules
+# Run Biome linting
 pnpm lint
-
-# ESLint security plugin example configuration (.eslintrc.yaml):
-# extends:
-#   - plugin:security/recommended
-#   - plugin:no-secrets/recommended
 
 # Run dependency audit
 pnpm audit --audit-level=high
@@ -398,10 +395,7 @@ pnpm audit --audit-level=high
 pnpm typecheck
 ```
 
-Recommended ESLint security plugins:
-- `eslint-plugin-security` — identifies potential Node.js security issues
-- `eslint-plugin-no-secrets` — detects secrets/credentials in code
-- `@typescript-eslint/eslint-plugin` — with strict rules enabled
+Biome serves as both the linter and formatter for this project. It enforces recommended rules plus strict checks on `noExplicitAny` and `noNonNullAssertion`. No ESLint plugins are required.
 
 ### Dynamic Analysis
 
@@ -520,10 +514,10 @@ curl http://localhost:8888/admin/config
 | Tool | Purpose |
 |------|---------|
 | `pnpm audit` | Dependency vulnerability scanning |
-| `eslint` + security plugins | Static code analysis for security issues |
+| Biome | Static code analysis and formatting |
 | `trivy` | Container scanning |
 | `grype` | SBOM and vulnerability scanning |
-| `Zod` | Runtime schema validation of all inputs |
+| `zod` | Runtime schema validation of all inputs |
 | OWASP ZAP | Dynamic security testing |
 
 ### References
