@@ -1,7 +1,7 @@
+import type { SpanProcessor as OtelSpanProcessor } from '@opentelemetry/sdk-trace-base';
 import type { Config } from '../config/config.js';
 import type { MetricsBuilder } from '../metrics/builder.js';
 import type { SpanProcessor } from '../processor/processor.js';
-import type { SpanProcessor as OtelSpanProcessor } from '@opentelemetry/sdk-trace-base';
 
 import { readFileSync } from 'node:fs';
 
@@ -119,9 +119,7 @@ export async function createCollectorService(config: Config): Promise<CollectorS
      than the top-level dep, producing incompatible SpanProcessor types. */
   const sdk = new NodeSDK({
     resource,
-    spanProcessors: [
-      otelSpanProcessor as unknown as OtelSpanProcessor,
-    ],
+    spanProcessors: [otelSpanProcessor as unknown as OtelSpanProcessor],
     instrumentations: [],
   });
 
