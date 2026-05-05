@@ -48,7 +48,7 @@
     "@reaatech/otel-cost-exporter-core": "workspace:*",
     "@reaatech/otel-cost-exporter-pricing": "workspace:*",
     "pino": "^10.0.0",
-    "yaml": "^2.6.1",
+    "yaml": "^2.8.4",
     "zod": "^3.24.2"
   },
   "devDependencies": {
