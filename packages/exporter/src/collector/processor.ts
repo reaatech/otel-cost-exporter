@@ -11,11 +11,10 @@ const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url),
 
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
-import { Resource } from '@opentelemetry/resources';
+import { resourceFromAttributes } from '@opentelemetry/resources';
 import {
   ConsoleMetricExporter,
   MeterProvider,
-  type MetricReader,
   PeriodicExportingMetricReader,
 } from '@opentelemetry/sdk-metrics';
 import { NodeSDK } from '@opentelemetry/sdk-node';
@@ -46,32 +45,30 @@ export async function createCollectorService(config: Config): Promise<CollectorS
 
   logger.info('Pricing tables loaded, span processor created');
 
-  const resource = new Resource({
+  const resource = resourceFromAttributes({
     [ATTR_SERVICE_NAME]: 'otel-cost-exporter',
     [ATTR_SERVICE_VERSION]: SERVICE_VERSION,
     ...config.metrics.labels,
   });
 
-  const meterProvider = new MeterProvider({ resource });
+  let reader: PrometheusExporter | PeriodicExportingMetricReader | undefined;
 
   if (config.export.format === 'prometheus') {
-    const prometheusReader = new PrometheusExporter({
+    reader = new PrometheusExporter({
       port: 8888,
       endpoint: '/metrics',
     });
-    meterProvider.addMetricReader(prometheusReader as unknown as MetricReader);
     logger.info({ port: 8888, endpoint: '/metrics' }, 'Prometheus metrics endpoint started');
   } else if (config.export.format === 'otlp') {
     const otlpExporter = new OTLPMetricExporter({
       url: config.export.endpoint ?? 'http://localhost:4318/v1/metrics',
     });
-    const reader = new PeriodicExportingMetricReader({
+    reader = new PeriodicExportingMetricReader({
       exporter: otlpExporter,
       exportIntervalMillis: config.export.interval
         ? parseIntervalMs(config.export.interval)
         : 60_000,
     });
-    meterProvider.addMetricReader(reader);
     logger.info(
       {
         endpoint: config.export.endpoint ?? 'http://localhost:4318/v1/metrics',
@@ -80,15 +77,19 @@ export async function createCollectorService(config: Config): Promise<CollectorS
     );
   } else if (config.export.format === 'json') {
     const consoleExporter = new ConsoleMetricExporter();
-    const reader = new PeriodicExportingMetricReader({
+    reader = new PeriodicExportingMetricReader({
       exporter: consoleExporter,
       exportIntervalMillis: config.export.interval
         ? parseIntervalMs(config.export.interval)
         : 60_000,
     });
-    meterProvider.addMetricReader(reader);
     logger.info({ format: 'json' }, 'Console metric export configured');
   }
+
+  const meterProvider = new MeterProvider({
+    resource,
+    readers: reader ? [reader] : undefined,
+  });
 
   const meter = meterProvider.getMeter('otel-cost-exporter');
 
