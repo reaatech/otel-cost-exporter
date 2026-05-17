@@ -1,14 +1,10 @@
 /* eslint-disable no-console */
 
 import { readFile } from 'node:fs/promises';
-
-import { createLogger } from '@reaatech/otel-cost-exporter-core';
-import type { CostSpan } from '@reaatech/otel-cost-exporter-core';
-import { CostSpanSchema } from '@reaatech/otel-cost-exporter-core';
-
+import type { Config, SpanProcessor } from '@reaatech/otel-cost-exporter';
 import { createProcessorFactory, loadConfig } from '@reaatech/otel-cost-exporter';
-import type { SpanProcessor } from '@reaatech/otel-cost-exporter';
-import type { Config } from '@reaatech/otel-cost-exporter';
+import type { CostSpan } from '@reaatech/otel-cost-exporter-core';
+import { CostSpanSchema, createLogger } from '@reaatech/otel-cost-exporter-core';
 
 export interface ReportCommandOptions {
   input?: string;

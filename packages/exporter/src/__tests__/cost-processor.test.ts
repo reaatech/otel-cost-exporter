@@ -1,20 +1,19 @@
 import type { IResource } from '@opentelemetry/resources';
 import { MeterProvider } from '@opentelemetry/sdk-metrics';
-import type { ReadableSpan } from '@opentelemetry/sdk-trace-base';
-import type { SpanProcessor as OtelSpanProcessor } from '@opentelemetry/sdk-trace-base';
-import type { Logger } from 'pino';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-
-import { createCostSpanProcessor } from '@reaatech/otel-cost-exporter';
+import type {
+  SpanProcessor as OtelSpanProcessor,
+  ReadableSpan,
+} from '@opentelemetry/sdk-trace-base';
 import type { SpanProcessor as CostSpanProcessor } from '@reaatech/otel-cost-exporter';
-import { createCostMetricReader } from '@reaatech/otel-cost-exporter';
-
+import { createCostMetricReader, createCostSpanProcessor } from '@reaatech/otel-cost-exporter';
 import {
   GEN_AI_REQUEST_MODEL,
   GEN_AI_SYSTEM,
   GEN_AI_USAGE_INPUT_TOKENS,
   GEN_AI_USAGE_OUTPUT_TOKENS,
 } from '@reaatech/otel-cost-exporter-core';
+import type { Logger } from 'pino';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 function makeResource(attrs: Record<string, string> = {}): IResource {
   const resource: IResource = {

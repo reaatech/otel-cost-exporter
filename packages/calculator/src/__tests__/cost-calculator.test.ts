@@ -1,15 +1,18 @@
 import path from 'node:path';
-import { beforeEach, describe, expect, it } from 'vitest';
-
-import { createCostCalculator } from '@reaatech/otel-cost-exporter-calculator';
-import type { CostCalculator, CostResult } from '@reaatech/otel-cost-exporter-calculator';
-import { createPricingCache } from '@reaatech/otel-cost-exporter-calculator';
-import type { PricingCache } from '@reaatech/otel-cost-exporter-calculator';
-import { createModelNormalizer } from '@reaatech/otel-cost-exporter-calculator';
-import type { ModelNormalizer } from '@reaatech/otel-cost-exporter-calculator';
-import { loadPricingData } from '@reaatech/otel-cost-exporter-pricing';
-import { createPricingTable } from '@reaatech/otel-cost-exporter-pricing';
+import type {
+  CostCalculator,
+  CostResult,
+  ModelNormalizer,
+  PricingCache,
+} from '@reaatech/otel-cost-exporter-calculator';
+import {
+  createCostCalculator,
+  createModelNormalizer,
+  createPricingCache,
+} from '@reaatech/otel-cost-exporter-calculator';
 import type { PricingTable } from '@reaatech/otel-cost-exporter-pricing';
+import { createPricingTable, loadPricingData } from '@reaatech/otel-cost-exporter-pricing';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 const TABLES_DIR = path.resolve(import.meta.dirname, '../../../pricing/pricing-tables');
 

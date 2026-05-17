@@ -1,8 +1,6 @@
 import { readFile } from 'node:fs/promises';
-
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
 import { DEFAULT_CONFIG } from '@reaatech/otel-cost-exporter';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('node:fs/promises', () => ({
   readFile: vi.fn(),

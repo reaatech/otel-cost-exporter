@@ -1,8 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ProcessResult, SpanProcessor } from '@reaatech/otel-cost-exporter';
 
 import { createBatchProcessor } from '@reaatech/otel-cost-exporter';
-import type { ProcessResult, SpanProcessor } from '@reaatech/otel-cost-exporter';
 import type { CostSpan } from '@reaatech/otel-cost-exporter-core';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createSampleSpan } from '../../../../tests/fixtures/spans.js';
 
 function makeInner(): {

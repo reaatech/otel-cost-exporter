@@ -1,8 +1,6 @@
-import { describe, expect, it } from 'vitest';
-
-import { createCollectorService } from '@reaatech/otel-cost-exporter';
-import { DEFAULT_CONFIG } from '@reaatech/otel-cost-exporter';
 import type { Config } from '@reaatech/otel-cost-exporter';
+import { createCollectorService, DEFAULT_CONFIG } from '@reaatech/otel-cost-exporter';
+import { describe, expect, it } from 'vitest';
 
 describe('createCollectorService', () => {
   it('should create a collector service with start and shutdown methods', async () => {

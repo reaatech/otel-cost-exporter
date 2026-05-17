@@ -24,7 +24,10 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": ["dist", "pricing-tables"],
+  "files": [
+    "dist",
+    "pricing-tables"
+  ],
   "publishConfig": {
     "access": "public"
   },

@@ -1,8 +1,8 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import type { PricingCache } from '@reaatech/otel-cost-exporter-calculator';
 
 import { createPricingCache } from '@reaatech/otel-cost-exporter-calculator';
-import type { PricingCache } from '@reaatech/otel-cost-exporter-calculator';
 import type { PriceEntry } from '@reaatech/otel-cost-exporter-core';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 function makeEntry(overrides?: Partial<PriceEntry>): PriceEntry {
   return {

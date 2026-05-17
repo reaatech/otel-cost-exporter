@@ -1,9 +1,8 @@
+import { readFileSync } from 'node:fs';
 import type { SpanProcessor as OtelSpanProcessor } from '@opentelemetry/sdk-trace-base';
 import type { Config } from '../config/config.js';
 import type { MetricsBuilder } from '../metrics/builder.js';
 import type { SpanProcessor } from '../processor/processor.js';
-
-import { readFileSync } from 'node:fs';
 
 const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf-8')) as {
   version: string;
@@ -20,14 +19,12 @@ import {
 } from '@opentelemetry/sdk-metrics';
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
-
-import { createLogger } from '@reaatech/otel-cost-exporter-core';
-import { parseIntervalMs } from '@reaatech/otel-cost-exporter-core';
+import { createLogger, parseIntervalMs } from '@reaatech/otel-cost-exporter-core';
 import { createMetricsBuilder } from '../metrics/builder.js';
 import { createCostSpanProcessor } from '../otel/cost-processor.js';
 import { createProcessorFactory } from '../processor/factory.js';
-import { createHealthServer } from './server.js';
 import type { HealthServer } from './server.js';
+import { createHealthServer } from './server.js';
 
 const SERVICE_VERSION = pkg.version;
 

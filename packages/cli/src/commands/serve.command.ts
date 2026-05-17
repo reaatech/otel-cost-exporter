@@ -4,19 +4,17 @@ import http from 'node:http';
 import { SpanStatusCode } from '@opentelemetry/api';
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
 import { Resource } from '@opentelemetry/resources';
-import { MeterProvider } from '@opentelemetry/sdk-metrics';
 import type { MetricReader } from '@opentelemetry/sdk-metrics';
+import { MeterProvider } from '@opentelemetry/sdk-metrics';
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
-
-import { createLogger } from '@reaatech/otel-cost-exporter-core';
-import type { CostSpan } from '@reaatech/otel-cost-exporter-core';
-
+import type { Config, MetricsBuilder, SpanProcessor } from '@reaatech/otel-cost-exporter';
 import {
   createMetricsBuilder,
   createProcessorFactory,
   loadConfig,
 } from '@reaatech/otel-cost-exporter';
-import type { Config, MetricsBuilder, SpanProcessor } from '@reaatech/otel-cost-exporter';
+import type { CostSpan } from '@reaatech/otel-cost-exporter-core';
+import { createLogger } from '@reaatech/otel-cost-exporter-core';
 
 const pkg = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf-8')) as {
   version: string;

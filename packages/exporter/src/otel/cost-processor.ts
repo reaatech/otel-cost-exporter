@@ -2,13 +2,11 @@ import type {
   SpanProcessor as OtelSpanProcessor,
   ReadableSpan,
 } from '@opentelemetry/sdk-trace-base';
-import type { Logger } from 'pino';
-
 import type { CostResult } from '@reaatech/otel-cost-exporter-calculator';
+import { logger as defaultLogger } from '@reaatech/otel-cost-exporter-core';
+import type { Logger } from 'pino';
 import type { MetricsBuilder } from '../metrics/builder.js';
 import type { SpanProcessor as CostSpanProcessor } from '../processor/processor.js';
-
-import { logger as defaultLogger } from '@reaatech/otel-cost-exporter-core';
 import { spanToCostSpan } from './span-adapter.js';
 
 export interface CostSpanProcessorOptions {

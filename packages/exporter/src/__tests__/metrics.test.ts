@@ -1,22 +1,20 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-
-import { MeterProvider } from '@opentelemetry/sdk-metrics';
 import {
   AggregationTemporality,
   InMemoryMetricExporter,
+  MeterProvider,
   type MetricData,
+  PeriodicExportingMetricReader,
   type ResourceMetrics,
 } from '@opentelemetry/sdk-metrics';
-import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
-
-import { createMetricsBuilder } from '@reaatech/otel-cost-exporter';
+import type { MetricsBuilder } from '@reaatech/otel-cost-exporter';
 import {
+  createMetricsBuilder,
   METRIC_INPUT_COST,
   METRIC_OUTPUT_COST,
   METRIC_TOTAL_COST,
 } from '@reaatech/otel-cost-exporter';
-import type { MetricsBuilder } from '@reaatech/otel-cost-exporter';
 import type { CostResult } from '@reaatech/otel-cost-exporter-calculator';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 function makeResult(overrides?: Partial<CostResult>): CostResult {
   return {
