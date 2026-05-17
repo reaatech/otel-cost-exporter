@@ -49,13 +49,12 @@ function findMetric(resourceMetrics: ResourceMetrics, name: string): MetricData 
 describe('createMetricsBuilder', () => {
   describe('instrument creation', () => {
     it('should create all three Counter instruments', async () => {
-      const meterProvider = new MeterProvider();
       const exporter = new InMemoryMetricExporter(AggregationTemporality.CUMULATIVE);
       const reader = new PeriodicExportingMetricReader({
         exporter,
         exportIntervalMillis: 100,
       });
-      meterProvider.addMetricReader(reader);
+      const meterProvider = new MeterProvider({ readers: [reader] });
       const meter = meterProvider.getMeter('test');
 
       const builder = createMetricsBuilder(meter);
@@ -79,14 +78,13 @@ describe('createMetricsBuilder', () => {
     });
 
     it('should accept a prefix and prefix metric names', async () => {
-      const meterProvider = new MeterProvider();
       const exporter = new InMemoryMetricExporter(AggregationTemporality.CUMULATIVE);
 
       const reader = new PeriodicExportingMetricReader({
         exporter,
         exportIntervalMillis: 100,
       });
-      meterProvider.addMetricReader(reader);
+      const meterProvider = new MeterProvider({ readers: [reader] });
       const meter = meterProvider.getMeter('test');
 
       const builder = createMetricsBuilder(meter, 'myapp');
@@ -111,13 +109,12 @@ describe('createMetricsBuilder', () => {
     let builder: MetricsBuilder;
 
     beforeEach(async () => {
-      meterProvider = new MeterProvider();
       exporter = new InMemoryMetricExporter(AggregationTemporality.CUMULATIVE);
       reader = new PeriodicExportingMetricReader({
         exporter,
         exportIntervalMillis: 100,
       });
-      meterProvider.addMetricReader(reader);
+      meterProvider = new MeterProvider({ readers: [reader] });
       const meter = meterProvider.getMeter('test');
       builder = createMetricsBuilder(meter);
     });

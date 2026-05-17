@@ -1,4 +1,4 @@
-import type { IResource } from '@opentelemetry/resources';
+import type { Resource } from '@opentelemetry/resources';
 import type { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { describe, expect, it } from 'vitest';
 
@@ -13,17 +13,8 @@ import {
   GEN_AI_USAGE_OUTPUT_TOKENS,
 } from '@reaatech/otel-cost-exporter-core';
 
-function makeResource(attrs: Record<string, string> = {}): IResource {
-  const resource: IResource = {
-    attributes: attrs,
-    merge(other: IResource | null): IResource {
-      return makeResource({
-        ...attrs,
-        ...((other?.attributes as Record<string, string> | undefined) ?? {}),
-      });
-    },
-  };
-  return resource;
+function makeResource(attrs: Record<string, string> = {}): Resource {
+  return { attributes: attrs } as Resource;
 }
 
 function makeSpan(overrides: Partial<ReadableSpan> = {}): ReadableSpan {
@@ -35,7 +26,11 @@ function makeSpan(overrides: Partial<ReadableSpan> = {}): ReadableSpan {
       spanId: '0000000000000002',
       traceFlags: 0,
     }),
-    parentSpanId: '0000000000000003',
+    parentSpanContext: {
+      traceId: '00000000000000000000000000000001',
+      spanId: '0000000000000003',
+      traceFlags: 0,
+    },
     startTime: [1700000000, 0],
     endTime: [1700000001, 500_000_000],
     status: { code: 1 },
@@ -50,7 +45,7 @@ function makeSpan(overrides: Partial<ReadableSpan> = {}): ReadableSpan {
     duration: [1, 500_000_000],
     ended: true,
     resource: makeResource(),
-    instrumentationLibrary: {
+    instrumentationScope: {
       name: 'test',
       version: '1.0',
       schemaUrl: '',

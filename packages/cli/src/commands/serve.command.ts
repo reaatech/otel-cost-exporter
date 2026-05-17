@@ -3,9 +3,8 @@ import http from 'node:http';
 
 import { SpanStatusCode } from '@opentelemetry/api';
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
-import { Resource } from '@opentelemetry/resources';
+import { resourceFromAttributes } from '@opentelemetry/resources';
 import { MeterProvider } from '@opentelemetry/sdk-metrics';
-import type { MetricReader } from '@opentelemetry/sdk-metrics';
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
 
 import { createLogger } from '@reaatech/otel-cost-exporter-core';
@@ -137,7 +136,7 @@ export async function serveCommand(options: ServeCommandOptions): Promise<void> 
 
   logger.info('Pricing tables loaded, span processor created');
 
-  const resource = new Resource({
+  const resource = resourceFromAttributes({
     [ATTR_SERVICE_NAME]: 'otel-cost-exporter',
     [ATTR_SERVICE_VERSION]: SERVICE_VERSION,
     ...config.metrics.labels,
@@ -150,7 +149,7 @@ export async function serveCommand(options: ServeCommandOptions): Promise<void> 
 
   const meterProvider = new MeterProvider({
     resource,
-    readers: [prometheusExporter as unknown as MetricReader],
+    readers: [prometheusExporter],
   });
 
   const meter = meterProvider.getMeter('otel-cost-exporter');
