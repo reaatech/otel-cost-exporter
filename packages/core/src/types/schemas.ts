@@ -48,7 +48,7 @@ export const ConfigSchema = z.object({
   }),
   metrics: z.object({
     prefix: z.string().default('llm_cost'),
-    labels: z.record(z.string()).default({}),
+    labels: z.record(z.string(), z.string()).default({}),
   }),
   export: z.object({
     format: z.enum(['prometheus', 'otlp', 'json']).default('prometheus'),
