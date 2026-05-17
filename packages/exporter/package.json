@@ -49,7 +49,7 @@
     "@reaatech/otel-cost-exporter-pricing": "workspace:*",
     "pino": "^10.0.0",
     "yaml": "^2.6.1",
-    "zod": "^3.24.2"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "tsup": "^8.4.0",
