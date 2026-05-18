@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import http from 'node:http';
 
 import { SpanStatusCode } from '@opentelemetry/api';
@@ -17,11 +16,9 @@ import {
 } from '@reaatech/otel-cost-exporter';
 import type { Config, MetricsBuilder, SpanProcessor } from '@reaatech/otel-cost-exporter';
 
-const pkg = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf-8')) as {
-  version: string;
-};
+declare const __PACKAGE_VERSION__: string;
 
-const SERVICE_VERSION = pkg.version;
+const SERVICE_VERSION = typeof __PACKAGE_VERSION__ === 'string' ? __PACKAGE_VERSION__ : '0.0.0-dev';
 
 interface RawOtlpAttribute {
   key: string;
