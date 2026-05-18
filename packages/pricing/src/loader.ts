@@ -64,8 +64,10 @@ const BUNDLED_TABLE_NAMES = [
   'azure.yaml',
 ] as const;
 
+declare const __MODULE_DIRNAME__: string;
+
 function defaultTablesDir(): string {
-  return path.resolve(import.meta.dirname, '../pricing-tables');
+  return path.resolve(__MODULE_DIRNAME__, '../pricing-tables');
 }
 
 async function parseSingleTable(filePath: string): Promise<PricingTableData> {

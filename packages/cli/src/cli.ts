@@ -1,18 +1,16 @@
 #!/usr/bin/env node
-import { readFileSync } from 'node:fs';
-
 import { Command } from 'commander';
 
-const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf-8')) as {
-  version: string;
-};
+declare const __PACKAGE_VERSION__: string;
+
+const VERSION = typeof __PACKAGE_VERSION__ === 'string' ? __PACKAGE_VERSION__ : '0.0.0-dev';
 
 const program = new Command();
 
 program
   .name('otel-cost-exporter')
   .description('OpenTelemetry-native cost metrics for every LLM call')
-  .version(pkg.version);
+  .version(VERSION);
 
 program
   .command('serve')

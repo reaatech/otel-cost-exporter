@@ -3,11 +3,9 @@ import type { Config } from '../config/config.js';
 import type { MetricsBuilder } from '../metrics/builder.js';
 import type { SpanProcessor } from '../processor/processor.js';
 
-import { readFileSync } from 'node:fs';
+declare const __PACKAGE_VERSION__: string;
 
-const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf-8')) as {
-  version: string;
-};
+const PACKAGE_VERSION = typeof __PACKAGE_VERSION__ === 'string' ? __PACKAGE_VERSION__ : '0.0.0-dev';
 
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
@@ -28,7 +26,7 @@ import { createProcessorFactory } from '../processor/factory.js';
 import { createHealthServer } from './server.js';
 import type { HealthServer } from './server.js';
 
-const SERVICE_VERSION = pkg.version;
+const SERVICE_VERSION = PACKAGE_VERSION;
 
 export interface CollectorService {
   start(): Promise<void>;
