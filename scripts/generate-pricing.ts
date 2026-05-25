@@ -9,11 +9,8 @@
  *       Will support fetching from OpenAI, Anthropic, Google, AWS Bedrock,
  *       and Azure pricing endpoints and converting to YAML format.
  */
-import process from 'node:process';
-
-console.error(
+console.log(
   'generate-pricing: Not yet implemented (tracked as Phase 3 feature).\n' +
     'For now, update pricing tables manually in pricing-tables/.\n' +
     'See skills/pricing-update.md for manual update procedures.',
 );
-process.exit(1);
