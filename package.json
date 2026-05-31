@@ -44,7 +44,8 @@
   "homepage": "https://github.com/reaatech/otel-cost-exporter#readme",
   "pnpm": {
     "overrides": {
-      "brace-expansion@>=5.0.0 <5.0.6": ">=5.0.6"
+      "brace-expansion@>=5.0.0 <5.0.6": ">=5.0.6",
+      "protobufjs": ">=7.5.8"
     }
   },
   "devDependencies": {

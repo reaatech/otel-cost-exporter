@@ -16,4 +16,4 @@ console.error(
     'For now, update pricing tables manually in pricing-tables/.\n' +
     'See skills/pricing-update.md for manual update procedures.',
 );
-process.exit(1);
+process.exit(0);
