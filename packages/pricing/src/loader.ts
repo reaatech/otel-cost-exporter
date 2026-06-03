@@ -1,10 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-
+import type { PriceEntry } from '@reaatech/otel-cost-exporter-core';
 import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
-
-import type { PriceEntry } from '@reaatech/otel-cost-exporter-core';
 
 const PriceEntryYamlSchema = z.object({
   input_token_price: z.number().positive('Input token price must be positive'),

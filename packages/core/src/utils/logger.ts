@@ -1,5 +1,5 @@
-import pino from 'pino';
 import type { Logger } from 'pino';
+import pino from 'pino';
 
 export function createLogger(level = 'info', format = 'json'): Logger {
   const opts: pino.LoggerOptions = { level };

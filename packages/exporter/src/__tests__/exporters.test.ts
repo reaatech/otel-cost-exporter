@@ -1,9 +1,10 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
-import { createPrometheusExporter } from '@reaatech/otel-cost-exporter';
-import { createOtlpExporter } from '@reaatech/otel-cost-exporter';
-import { createJsonExporter } from '@reaatech/otel-cost-exporter';
+import {
+  createJsonExporter,
+  createOtlpExporter,
+  createPrometheusExporter,
+} from '@reaatech/otel-cost-exporter';
 import type { CostBreakdown } from '@reaatech/otel-cost-exporter-core';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('Prometheus exporter', () => {
   describe('creation', () => {

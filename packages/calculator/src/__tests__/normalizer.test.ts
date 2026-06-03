@@ -1,5 +1,5 @@
-import { createModelNormalizer } from '@reaatech/otel-cost-exporter-calculator';
 import type { ModelNormalizer } from '@reaatech/otel-cost-exporter-calculator';
+import { createModelNormalizer } from '@reaatech/otel-cost-exporter-calculator';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 describe('createModelNormalizer', () => {

@@ -1,7 +1,6 @@
 import { readFile } from 'node:fs/promises';
-import { parse as parseYaml } from 'yaml';
-
 import { ConfigSchema } from '@reaatech/otel-cost-exporter-core';
+import { parse as parseYaml } from 'yaml';
 import type { Config } from './config.js';
 import { DEFAULT_CONFIG } from './config.js';
 

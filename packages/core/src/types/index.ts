@@ -1,8 +1,8 @@
 export type {
-  PriceEntry,
-  CostBreakdown,
   AggregationKey,
-  TelemetryContext,
+  CostBreakdown,
   CostSpan,
+  PriceEntry,
+  TelemetryContext,
 } from './domain.js';
-export { PriceEntrySchema, CostSpanSchema, ConfigSchema } from './schemas.js';
+export { ConfigSchema, CostSpanSchema, PriceEntrySchema } from './schemas.js';

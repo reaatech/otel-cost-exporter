@@ -1,9 +1,9 @@
 export type {
   Config,
-  PricingConfig,
-  MetricsConfig,
   ExportConfig,
   LoggingConfig,
+  MetricsConfig,
+  PricingConfig,
 } from './config.js';
 export { DEFAULT_CONFIG } from './config.js';
 export { loadConfig } from './loader.js';

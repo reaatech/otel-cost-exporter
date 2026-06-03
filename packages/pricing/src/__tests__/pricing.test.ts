@@ -2,13 +2,10 @@ import { randomUUID } from 'node:crypto';
 import { mkdir, rm, unlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { beforeEach, describe, expect, it } from 'vitest';
-
 import type { PriceEntry } from '@reaatech/otel-cost-exporter-core';
-import type { PricingTable } from '@reaatech/otel-cost-exporter-pricing';
-import { createPricingTable } from '@reaatech/otel-cost-exporter-pricing';
-import { loadPricingData } from '@reaatech/otel-cost-exporter-pricing';
-import type { PricingTableData } from '@reaatech/otel-cost-exporter-pricing';
+import type { PricingTable, PricingTableData } from '@reaatech/otel-cost-exporter-pricing';
+import { createPricingTable, loadPricingData } from '@reaatech/otel-cost-exporter-pricing';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 const TABLES_DIR = path.resolve(import.meta.dirname, '../../pricing-tables');
 

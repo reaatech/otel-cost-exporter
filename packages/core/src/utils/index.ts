@@ -1,2 +1,2 @@
-export { createLogger, logger } from './logger.js';
 export { parseIntervalMs } from './interval.js';
+export { createLogger, logger } from './logger.js';

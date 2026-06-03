@@ -5,16 +5,14 @@ import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { MeterProvider } from '@opentelemetry/sdk-metrics';
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
-
-import { createLogger } from '@reaatech/otel-cost-exporter-core';
-import type { CostSpan } from '@reaatech/otel-cost-exporter-core';
-
+import type { Config, MetricsBuilder, SpanProcessor } from '@reaatech/otel-cost-exporter';
 import {
   createMetricsBuilder,
   createProcessorFactory,
   loadConfig,
 } from '@reaatech/otel-cost-exporter';
-import type { Config, MetricsBuilder, SpanProcessor } from '@reaatech/otel-cost-exporter';
+import type { CostSpan } from '@reaatech/otel-cost-exporter-core';
+import { createLogger } from '@reaatech/otel-cost-exporter-core';
 
 declare const __PACKAGE_VERSION__: string;
 
