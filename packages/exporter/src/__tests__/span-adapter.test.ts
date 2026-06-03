@@ -1,9 +1,6 @@
 import type { Resource } from '@opentelemetry/resources';
 import type { ReadableSpan } from '@opentelemetry/sdk-trace-base';
-import { describe, expect, it } from 'vitest';
-
 import { spanToCostSpan } from '@reaatech/otel-cost-exporter';
-
 import {
   GEN_AI_REQUEST_MODEL,
   GEN_AI_SYSTEM,
@@ -12,6 +9,7 @@ import {
   GEN_AI_USAGE_INPUT_TOKENS,
   GEN_AI_USAGE_OUTPUT_TOKENS,
 } from '@reaatech/otel-cost-exporter-core';
+import { describe, expect, it } from 'vitest';
 
 function makeResource(attrs: Record<string, string> = {}): Resource {
   return { attributes: attrs } as Resource;

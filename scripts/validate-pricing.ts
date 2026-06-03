@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Pricing table validation script — Phase 1 implementation
-import { readFile, readdir } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { parse } from 'yaml';
 

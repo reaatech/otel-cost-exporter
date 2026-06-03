@@ -1,12 +1,12 @@
 import type { CostCalculator } from '@reaatech/otel-cost-exporter-calculator';
+import {
+  createCostCalculator,
+  createModelNormalizer,
+  createPricingCache,
+} from '@reaatech/otel-cost-exporter-calculator';
+import { createPricingTable, loadPricingData } from '@reaatech/otel-cost-exporter-pricing';
 import type { Config } from '../config/config.js';
 import type { SpanProcessor, SpanProcessorDeps } from './processor.js';
-
-import { createCostCalculator } from '@reaatech/otel-cost-exporter-calculator';
-import { createPricingCache } from '@reaatech/otel-cost-exporter-calculator';
-import { createModelNormalizer } from '@reaatech/otel-cost-exporter-calculator';
-import { loadPricingData } from '@reaatech/otel-cost-exporter-pricing';
-import { createPricingTable } from '@reaatech/otel-cost-exporter-pricing';
 
 export interface ProcessorFactory {
   createProcessor(): Promise<SpanProcessor>;

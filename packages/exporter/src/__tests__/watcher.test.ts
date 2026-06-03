@@ -1,5 +1,5 @@
-import { DEFAULT_CONFIG } from '@reaatech/otel-cost-exporter';
 import type { Config } from '@reaatech/otel-cost-exporter';
+import { DEFAULT_CONFIG } from '@reaatech/otel-cost-exporter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('node:fs', async (importOriginal) => {

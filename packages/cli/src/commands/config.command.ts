@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
 
-import { stringify as stringifyYaml } from 'yaml';
+import type { Config } from '@reaatech/otel-cost-exporter';
 
 import { DEFAULT_CONFIG, loadConfig } from '@reaatech/otel-cost-exporter';
-import type { Config } from '@reaatech/otel-cost-exporter';
+import { stringify as stringifyYaml } from 'yaml';
 
 export interface ConfigCommandOptions {
   format: 'json' | 'yaml';

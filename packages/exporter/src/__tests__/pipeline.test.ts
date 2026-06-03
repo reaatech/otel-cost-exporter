@@ -1,17 +1,17 @@
 import path from 'node:path';
-import { beforeEach, describe, expect, it } from 'vitest';
+import type { ProcessResult, SpanProcessor } from '@reaatech/otel-cost-exporter';
 
 import { createSpanProcessor } from '@reaatech/otel-cost-exporter';
-import type { ProcessResult, SpanProcessor } from '@reaatech/otel-cost-exporter';
-import { createPricingCache } from '@reaatech/otel-cost-exporter-calculator';
-import type { PricingCache } from '@reaatech/otel-cost-exporter-calculator';
-import { createModelNormalizer } from '@reaatech/otel-cost-exporter-calculator';
-import { createCostCalculator } from '@reaatech/otel-cost-exporter-calculator';
-import type { CostCalculator } from '@reaatech/otel-cost-exporter-calculator';
+import type { CostCalculator, PricingCache } from '@reaatech/otel-cost-exporter-calculator';
+import {
+  createCostCalculator,
+  createModelNormalizer,
+  createPricingCache,
+} from '@reaatech/otel-cost-exporter-calculator';
 import type { CostSpan } from '@reaatech/otel-cost-exporter-core';
-import { loadPricingData } from '@reaatech/otel-cost-exporter-pricing';
-import { createPricingTable } from '@reaatech/otel-cost-exporter-pricing';
 import type { PricingTable } from '@reaatech/otel-cost-exporter-pricing';
+import { createPricingTable, loadPricingData } from '@reaatech/otel-cost-exporter-pricing';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { createSampleSpan } from '../../../../tests/fixtures/spans.js';
 
 const TABLES_DIR = path.resolve(import.meta.dirname, '../../../pricing/pricing-tables');

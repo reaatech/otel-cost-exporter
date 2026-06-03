@@ -1,7 +1,6 @@
 import http from 'node:http';
-import { describe, expect, it } from 'vitest';
-
 import { createHealthServer } from '@reaatech/otel-cost-exporter';
+import { describe, expect, it } from 'vitest';
 
 function httpGet(port: number, path: string): Promise<{ status: number; body: unknown }> {
   return new Promise((resolve, reject) => {

@@ -1,15 +1,20 @@
 import { randomUUID } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-
-import { createSpanProcessor } from '@reaatech/otel-cost-exporter';
-import type { ProcessResult, SpanProcessor } from '@reaatech/otel-cost-exporter';
-import { createProcessorFactory } from '@reaatech/otel-cost-exporter';
-import type { Config, PricingConfig } from '@reaatech/otel-cost-exporter';
-import { DEFAULT_CONFIG } from '@reaatech/otel-cost-exporter';
+import type {
+  Config,
+  PricingConfig,
+  ProcessResult,
+  SpanProcessor,
+} from '@reaatech/otel-cost-exporter';
+import {
+  createProcessorFactory,
+  createSpanProcessor,
+  DEFAULT_CONFIG,
+} from '@reaatech/otel-cost-exporter';
 import type { CostCalculator, CostResult } from '@reaatech/otel-cost-exporter-calculator';
 import type { CostSpan } from '@reaatech/otel-cost-exporter-core';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createSampleSpan } from '../../../../tests/fixtures/spans.js';
 
 function makeCostResult(overrides: Partial<CostResult> = {}): CostResult {

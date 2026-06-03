@@ -1,6 +1,6 @@
 import type { CostBreakdown, PriceEntry } from '@reaatech/otel-cost-exporter-core';
 
-import { TOKENS_PER_UNIT, roundTo } from '@reaatech/otel-cost-exporter-core';
+import { roundTo, TOKENS_PER_UNIT } from '@reaatech/otel-cost-exporter-core';
 
 export interface CalculatorDeps {
   readonly pricing: {
