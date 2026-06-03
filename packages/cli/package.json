@@ -48,7 +48,7 @@
     "@reaatech/otel-cost-exporter": "workspace:*",
     "@reaatech/otel-cost-exporter-core": "workspace:*",
     "@reaatech/otel-cost-exporter-pricing": "workspace:*",
-    "commander": "^12.1.0",
+    "commander": "^15.0.0",
     "yaml": "^2.6.1"
   },
   "devDependencies": {
